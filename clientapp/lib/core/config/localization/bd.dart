@@ -1,0 +1,20 @@
+const Map<String, String> bnBD = {
+  // Setting Screen
+  'settings': 'সেটিংস',
+  'app_settings': 'অ্যাপ সেটিংস',
+  'dark_mode': 'ডার্ক মোড',
+  'enable_dark_mode': 'ডার্ক থিম সক্রিয় করুন',
+  'notifications': 'বিজ্ঞপ্তি',
+  'manage_notifications': 'বিজ্ঞপ্তি পরিচালনা করুন',
+  'privacy_security': 'গোপনীয়তা ও নিরাপত্তা',
+  'manage_privacy_settings': 'গোপনীয়তা সেটিংস পরিচালনা করুন',
+  'app_version': 'অ্যাপ সংস্করণ',
+  'terms_of_service': 'সেবা শর্তাবলী',
+  'about': 'সম্পর্কে',
+  'Account': 'অ্যাকাউন্ট',
+  'location': 'অবস্থান',
+  'select_location': 'অবস্থান নির্বাচন করুন',
+  'language': 'ভাষা',
+  'select_language': 'ভাষা নির্বাচন করুন',
+  'change_language': 'ভাষা পরিবর্তন',
+};

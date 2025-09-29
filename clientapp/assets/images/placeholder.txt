@@ -1,0 +1,3 @@
+# Placeholder for app logo
+# In a real project, you would place actual image files here
+# such as logo.png, app_icon.png, etc.
