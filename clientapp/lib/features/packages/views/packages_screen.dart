@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:clientapp/core/config/constants/color.dart';
 import 'package:clientapp/features/packages/controllers/packages_controller.dart';
-import 'package:clientapp/shared/models/app_models.dart';
 
 class PackagesScreen extends StatelessWidget {
   const PackagesScreen({super.key});
@@ -13,22 +12,10 @@ class PackagesScreen extends StatelessWidget {
         Get.find<PackagesController>();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Users Package Configuration'),
-        // actions: [
-        //   TextButton.icon(
-        //     onPressed: () => Get.back(),
-        //     icon: const Icon(Icons.dashboard, size: 16),
-        //     label: const Text('Dashboard'),
-        //     style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
-        //   ),
-        //   TextButton.icon(
-        //     onPressed: () {},
-        //     icon: const Icon(Icons.inventory_2, size: 16),
-        //     label: const Text('Package Configuration'),
-        //     style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
-        //   ),
-        // ],
+        title: const Text('Package Configuration'),
+        elevation: 0,
       ),
       body: Obx(() {
         if (packagesController.isLoading.value) {
@@ -42,225 +29,330 @@ class PackagesScreen extends StatelessWidget {
               // Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Users Package Configuration',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                  gradient: LinearGradient(
+                    colors: AppColors.blueGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Packages Table
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withOpacity(0.3),
                       blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Table Header
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.inventory_2,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Package Configuration',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Choose your perfect internet plan',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Current Package (if any)
+              if (packagesController.packages.any((pkg) => pkg.isActive))
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: AppColors.greenGradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Current Active Package',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        packagesController.packages
+                            .firstWhere((pkg) => pkg.isActive)
+                            .name,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: Row(
-                        children: const [
-                          Expanded(
-                            flex: 1,
-                            child: Text(
-                              '#',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                    ],
+                  ),
+                ),
+
+              // Available Packages
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: packagesController.packages.length,
+                itemBuilder: (context, index) {
+                  final package = packagesController.packages[index];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: package.isActive
+                            ? AppColors.primary
+                            : AppColors.cardBorder,
+                        width: package.isActive ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: package.isActive 
+                            ? AppColors.primary.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Package header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: package.isActive
+                                      ? AppColors.success.withOpacity(0.1)
+                                      : AppColors.info.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      package.isActive
+                                          ? Icons.check_circle
+                                          : Icons.wifi,
+                                      size: 16,
+                                      color: package.isActive
+                                          ? AppColors.success
+                                          : AppColors.info,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      package.isActive ? 'Active' : 'Available',
+                                      style: TextStyle(
+                                        color: package.isActive
+                                            ? AppColors.success
+                                            : AppColors.info,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '৳${package.price}',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Package name and speed
+                          Text(
+                            package.name,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
                             ),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Package Name',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${package.bandwidth} MB',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.category,
+                                size: 16,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                package.type,
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Package features
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: AppColors.info,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Perfect for ${package.type.toLowerCase()} usage with ${package.bandwidth}MB bandwidth',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Price',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Bandwidth',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Package_type',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Preview',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Action',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+
+                          const SizedBox(height: 20),
+
+                          // Action button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: package.isActive
+                                  ? null
+                                  : () => packagesController.activatePackage(package.id),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: package.isActive
+                                    ? AppColors.success
+                                    : AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: package.isActive ? 0 : 2,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    package.isActive
+                                        ? Icons.check
+                                        : Icons.shopping_cart,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    package.isActive ? 'Currently Active' : 'Activate Package',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                    // Table Body
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: packagesController.packages.length,
-                      itemBuilder: (context, index) {
-                        final package = packagesController.packages[index];
-                        return _buildPackageRow(
-                          context,
-                          index + 1,
-                          package,
-                          packagesController,
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ],
           ),
         );
       }),
-    );
-  }
-
-  Widget _buildPackageRow(
-    BuildContext context,
-    int serialNo,
-    Package package,
-    PackagesController controller,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.cardBorder.withOpacity(0.5),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Text(
-              serialNo.toString(),
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              package.name,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              package.price.toString(),
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              package.bandwidth.toString(),
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(package.type, style: const TextStyle(fontSize: 14)),
-          ),
-          Expanded(
-            flex: 2,
-            child: const Text(
-              '--',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child:
-                package.isActive
-                    ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'Activated',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                    : ElevatedButton(
-                      onPressed: () => controller.activatePackage(package.id),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.info,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        minimumSize: const Size(0, 32),
-                      ),
-                      child: const Text(
-                        'Active',
-                        style: TextStyle(fontSize: 12, color: Colors.white),
-                      ),
-                    ),
-          ),
-        ],
-      ),
     );
   }
 }

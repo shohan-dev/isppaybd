@@ -44,8 +44,14 @@ class _SplashScreenState extends State<SplashScreen>
     // Auto navigate after animation
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Get.find<AuthController>().checkAuthStatus();
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          try {
+            final authController = Get.find<AuthController>();
+            await authController.checkAuthStatus();
+          } catch (e) {
+            // If AuthController is not found, navigate to login directly
+            Get.offAllNamed('/login');
+          }
         });
       }
     });

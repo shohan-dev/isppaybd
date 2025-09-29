@@ -19,7 +19,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    checkAuthStatus();
+    // Don't call checkAuthStatus here to avoid setState during build
   }
 
   @override
@@ -134,13 +134,26 @@ class AuthController extends GetxController {
     return true;
   }
 
-  void checkAuthStatus() {
+  Future<void> checkAuthStatus() async {
     // In a real app, you would check for stored auth tokens here
-    // For now, we'll just assume user is not logged in
-    // Future.delayed(const Duration(seconds: 2), () {
-    //   Get.offAllNamed(AppRoutes.login);
-    // });
-    Get.offAllNamed(AppRoutes.dashboard);
+    // For now, we'll just assume user is not logged in and navigate to login
+
+    // Add a small delay to ensure the widget tree is built
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // For demo purposes, let's check if we have user data
+    try {
+      final userData = _dataService.user;
+      if (userData.isNotEmpty) {
+        currentUser.value = User.fromJson(userData);
+        Get.offAllNamed(AppRoutes.dashboard);
+      } else {
+        Get.offAllNamed(AppRoutes.login);
+      }
+    } catch (e) {
+      // If there's any error, go to login
+      Get.offAllNamed(AppRoutes.login);
+    }
   }
 
   // Helper method to fill demo credentials

@@ -4,6 +4,6 @@ import 'package:clientapp/features/payment/controllers/payment_controller.dart';
 class PaymentBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<PaymentController>(() => PaymentController());
+    Get.put<PaymentController>(PaymentController());
   }
 }

@@ -4,6 +4,6 @@ import 'package:clientapp/features/packages/controllers/packages_controller.dart
 class PackagesBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<PackagesController>(() => PackagesController());
+    Get.put<PackagesController>(PackagesController());
   }
 }

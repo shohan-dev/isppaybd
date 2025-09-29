@@ -4,6 +4,7 @@ import 'package:clientapp/core/services/data_service.dart';
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    Get.putAsync<DataService>(() => DataService().init());
+    // Put DataService synchronously so it's available immediately
+    Get.put<DataService>(DataService()..init());
   }
 }
