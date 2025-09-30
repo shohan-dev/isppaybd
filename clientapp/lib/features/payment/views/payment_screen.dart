@@ -8,390 +8,541 @@ class PaymentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PaymentController paymentController = Get.find<PaymentController>();
+    final paymentController = Get.find<PaymentController>();
+    final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Payments'),
-        elevation: 0,
-      ),
-      body: Obx(() {
-        if (paymentController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark 
+                ? [
+                    const Color(0xFF1A1D29),
+                    const Color(0xFF2B2F42),
+                  ]
+                : [
+                    AppColors.primary.withOpacity(0.05),
+                    Colors.white,
+                  ],
+          ),
+        ),
+        child: SafeArea(
           child: Column(
             children: [
-              // Header with payment summary
+              // Custom App Bar
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: AppColors.purpleGradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.secondary.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                padding: EdgeInsets.symmetric(
+                  horizontal: size.width * 0.05,
+                  vertical: 16,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.payment,
-                            color: Colors.white,
-                            size: 24,
-                          ),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Payment History',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Track all your transactions',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Theme.of(context).iconTheme.color,
                         ),
-                      ],
+                      ),
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Quick stats
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildQuickStat(
-                            context,
-                            'Total Paid',
-                            '৳${paymentController.payments.where((p) => p['status'] == 'Paid').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0)).toStringAsFixed(0)}',
-                            Icons.check_circle,
-                            Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildQuickStat(
-                            context,
-                            'Pending',
-                            '৳${paymentController.payments.where((p) => p['status'] == 'Pending').fold(0.0, (sum, p) => sum + (p['amount'] ?? 0)).toStringAsFixed(0)}',
-                            Icons.schedule,
-                            Colors.white,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Payment History',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
               ),
+              
+              // Payment Content
+              Expanded(
+                child: Obx(() {
+                  if (paymentController.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              const SizedBox(height: 24),
-
-              // Payment list
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: paymentController.payments.length,
-                itemBuilder: (context, index) {
-                  final payment = paymentController.payments[index];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await Future.delayed(const Duration(seconds: 1));
+                    },
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Payment header
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(payment['status'] ?? '').withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  _getStatusIcon(payment['status'] ?? ''),
-                                  color: _getStatusColor(payment['status'] ?? ''),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Invoice #${payment['invoiceId'] ?? 'N/A'}',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    Text(
-                                      (payment['date'] ?? '').toString().split(' ')[0],
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(payment['status'] ?? '').withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  payment['status'] ?? 'Unknown',
-                                  style: TextStyle(
-                                    color: _getStatusColor(payment['status'] ?? ''),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Payment details
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                _buildPaymentDetail('Package', payment['packageName'] ?? 'N/A'),
-                                const SizedBox(height: 12),
-                                _buildPaymentDetail('Amount', '৳${(payment['amount'] ?? 0).toString()}'),
-                                const SizedBox(height: 12),
-                                _buildPaymentDetail('Method', payment['method'] ?? 'N/A'),
-                                const SizedBox(height: 12),
-                                _buildPaymentDetail('Date', (payment['date'] ?? '').toString().split(' ')[0]),
-                              ],
+                          // Payment Summary Cards
+                          _buildPaymentSummary(paymentController, isDark),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Quick Actions
+                          _buildQuickActions(context, isDark),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Recent Payments Section
+                          const Text(
+                            'Recent Transactions',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
-                          // Action buttons
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _showPaymentDetails(context, payment),
-                                  icon: const Icon(Icons.visibility, size: 18),
-                                  label: const Text('View Details'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    side: BorderSide(color: AppColors.primary),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _downloadInvoice(payment),
-                                  icon: const Icon(Icons.download, size: 18),
-                                  label: const Text('Download'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    elevation: 2,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          
+                          // Payment List
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: paymentController.payments.length,
+                            itemBuilder: (context, index) {
+                              final payment = paymentController.payments[index];
+                              return _buildPaymentCard(payment, index, isDark);
+                            },
                           ),
+                          
+                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
                   );
-                },
+                }),
               ),
             ],
           ),
-        );
-      }),
-    );
-  }
-
-  Widget _buildQuickStat(BuildContext context, String label, String value, IconData icon, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: textColor, size: 20),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: textColor.withOpacity(0.8),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPaymentDetail(String label, String value) {
+  Widget _buildPaymentSummary(PaymentController paymentController, bool isDark) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4CAF50).withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.account_balance_wallet,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Total Paid',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '৳${_calculateTotalPaid(paymentController.payments)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+        const SizedBox(width: 16),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF9800).withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.pending_actions,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Pending',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '৳${_calculatePendingAmount(paymentController.payments)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return AppColors.success;
-      case 'pending':
-        return AppColors.warning;
-      case 'failed':
-        return AppColors.error;
-      default:
-        return AppColors.info;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return Icons.check_circle;
-      case 'pending':
-        return Icons.schedule;
-      case 'failed':
-        return Icons.error;
-      default:
-        return Icons.info;
-    }
-  }
-
-  void _showPaymentDetails(BuildContext context, payment) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('Payment Details'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildPaymentDetail('Invoice ID', payment['invoiceId'] ?? 'N/A'),
-            const Divider(),
-            _buildPaymentDetail('Package', payment['packageName'] ?? 'N/A'),
-            const Divider(),
-            _buildPaymentDetail('Amount', '৳${(payment['amount'] ?? 0).toString()}'),
-            const Divider(),
-            _buildPaymentDetail('Method', payment['method'] ?? 'N/A'),
-            const Divider(),
-            _buildPaymentDetail('Status', payment['status'] ?? 'Unknown'),
-            const Divider(),
-            _buildPaymentDetail('Date', (payment['date'] ?? '').toString()),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.flash_on,
+                color: AppColors.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Quick Actions',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionButton(
+                  title: 'Make Payment',
+                  icon: Icons.payment,
+                  color: const Color(0xFF4CAF50),
+                  onTap: () {
+                    Get.dialog(
+                      AlertDialog(
+                        title: const Text('Make Payment'),
+                        content: const Text('Payment gateway will be integrated soon.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Get.back(),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionButton(
+                  title: 'Download Receipt',
+                  icon: Icons.download,
+                  color: const Color(0xFF2196F3),
+                  onTap: () {
+                    Get.snackbar(
+                      'Download',
+                      'Receipt download feature coming soon!',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildActionButton(
+                  title: 'Auto Pay',
+                  icon: Icons.autorenew,
+                  color: const Color(0xFF9C27B0),
+                  onTap: () {
+                    Get.snackbar(
+                      'Auto Pay',
+                      'Auto payment setup coming soon!',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  void _downloadInvoice(payment) {
-    Get.snackbar(
-      'Download Started',
-      'Invoice for ${payment['invoiceId'] ?? 'N/A'} is being downloaded.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.success,
-      colorText: Colors.white,
+  Widget _buildActionButton({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Widget _buildPaymentCard(dynamic payment, int index, bool isDark) {
+    final status = payment['status'] ?? 'pending';
+    final isSuccess = status.toLowerCase() == 'success';
+    final isPending = status.toLowerCase() == 'pending';
+    
+    Color statusColor = Colors.grey;
+    if (isSuccess) statusColor = const Color(0xFF4CAF50);
+    if (isPending) statusColor = const Color(0xFFFF9800);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: statusColor.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  isSuccess ? Icons.check_circle : (isPending ? Icons.pending : Icons.error),
+                  color: statusColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      payment['description'] ?? 'Internet Package Payment',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      payment['date'] ?? 'N/A',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '৳${payment['amount'] ?? '0'}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      status.toUpperCase(),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[850] : Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Transaction ID',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        payment['id'] ?? 'N/A',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSuccess)
+                  GestureDetector(
+                    onTap: () {
+                      Get.snackbar(
+                        'Receipt',
+                        'Receipt download feature coming soon!',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.receipt,
+                        color: statusColor,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _calculateTotalPaid(List<dynamic> payments) {
+    double total = 0;
+    for (var payment in payments) {
+      if (payment['status']?.toLowerCase() == 'success') {
+        total += double.tryParse(payment['amount'].toString()) ?? 0;
+      }
+    }
+    return total.toInt().toString();
+  }
+
+  String _calculatePendingAmount(List<dynamic> payments) {
+    double total = 0;
+    for (var payment in payments) {
+      if (payment['status']?.toLowerCase() == 'pending') {
+        total += double.tryParse(payment['amount'].toString()) ?? 0;
+      }
+    }
+    return total.toInt().toString();
   }
 }

@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:clientapp/core/services/data_service.dart';
+import 'package:clientapp/core/services/local_storage_service.dart';
 import 'package:clientapp/core/routes/app_routes.dart';
 import 'package:clientapp/shared/models/user_model.dart';
 
 class AuthController extends GetxController {
   final DataService _dataService = Get.find<DataService>();
+  final LocalStorageService _storageService = Get.find<LocalStorageService>();
 
   // Form controllers
   final emailController = TextEditingController();
@@ -34,22 +36,23 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    // if (!_validateInputs()) return;
+    if (!_validateInputs()) return;
 
     isLoading.value = true;
 
     try {
       final success = await _dataService.login(
-        // emailController.text.trim(),
-        // passwordController.text.trim(),
-        "34003395@gmail.com",
-        "123456",
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
 
       if (success) {
         // Load user data
         final userData = _dataService.user;
         currentUser.value = User.fromJson(userData);
+
+        // Save to local storage
+        _storageService.saveUserSession(userData);
 
         // Navigate to dashboard
         Get.offAllNamed(AppRoutes.dashboard);
@@ -88,6 +91,10 @@ class AuthController extends GetxController {
     currentUser.value = null;
     emailController.clear();
     passwordController.clear();
+
+    // Clear local storage
+    _storageService.clearUserSession();
+
     Get.offAllNamed(AppRoutes.login);
 
     Get.snackbar(
@@ -135,21 +142,22 @@ class AuthController extends GetxController {
   }
 
   Future<void> checkAuthStatus() async {
-    // In a real app, you would check for stored auth tokens here
-    // For now, we'll just assume user is not logged in and navigate to login
-
     // Add a small delay to ensure the widget tree is built
     await Future.delayed(const Duration(milliseconds: 100));
 
-    // For demo purposes, let's check if we have user data
     try {
-      final userData = _dataService.user;
-      if (userData.isNotEmpty) {
-        currentUser.value = User.fromJson(userData);
-        Get.offAllNamed(AppRoutes.dashboard);
-      } else {
-        Get.offAllNamed(AppRoutes.login);
+      // Check local storage first
+      if (_storageService.isLoggedIn()) {
+        final userData = _storageService.getUserData();
+        if (userData != null) {
+          currentUser.value = User.fromJson(userData);
+          Get.offAllNamed(AppRoutes.dashboard);
+          return;
+        }
       }
+
+      // If no local session, go to login
+      Get.offAllNamed(AppRoutes.login);
     } catch (e) {
       // If there's any error, go to login
       Get.offAllNamed(AppRoutes.login);

@@ -5,6 +5,13 @@ import 'package:get/get.dart';
 class DataService extends GetxService {
   Map<String, dynamic>? _dummyData;
 
+  DataService() {
+    // Initialize with default data immediately
+    _dummyData = _getDefaultData();
+    // Load from JSON asynchronously in the background
+    loadDummyData();
+  }
+
   Future<DataService> init() async {
     await loadDummyData();
     return this;
@@ -18,7 +25,7 @@ class DataService extends GetxService {
       _dummyData = json.decode(jsonString);
     } catch (e) {
       print('Error loading dummy data: $e');
-      _dummyData = _getDefaultData();
+      // Keep default data if loading fails
     }
   }
 

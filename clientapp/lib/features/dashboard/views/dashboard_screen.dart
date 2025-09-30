@@ -11,402 +11,499 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DashboardController dashboardController =
-        Get.find<DashboardController>();
-    final AuthController authController = Get.find<AuthController>();
+    final dashboardController = Get.find<DashboardController>();
+    final authController = Get.find<AuthController>();
+    final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      drawer: _buildDrawer(context, authController),
-      appBar: AppBar(
-        title: const Text('User\'s Dashboard'),
-        // actions: [
-        //   TextButton.icon(
-        //     onPressed: () {},
-        //     icon: const Icon(Icons.home, size: 16),
-        //     label: const Text('Home'),
-        //     style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
-        //   ),
-        //   TextButton.icon(
-        //     onPressed: () {},
-        //     icon: const Icon(Icons.dashboard, size: 16),
-        //     label: const Text('Dashboard'),
-        //     style: TextButton.styleFrom(foregroundColor: AppColors.textPrimary),
-        //   ),
-        // ],
-      ),
-      body: Obx(() {
-        if (dashboardController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark 
+                ? [
+                    const Color(0xFF1A1D29),
+                    const Color(0xFF2B2F42),
+                  ]
+                : [
+                    AppColors.primary.withOpacity(0.05),
+                    Colors.white,
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: Obx(() {
+            if (dashboardController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        return RefreshIndicator(
-          onRefresh: dashboardController.refreshData,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome Section
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: AppColors.blueGradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.dashboard,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Welcome Back!',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Obx(
-                                  () => Text(
-                                    authController.currentUser.value?.name ??
-                                        'User',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(color: Colors.white70),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+            return RefreshIndicator(
+              onRefresh: dashboardController.refreshData,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: size.width * 0.05,
+                  vertical: 16,
                 ),
-
-                // Stats Cards Grid
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatsCard(
-                      title: 'Total Payment (৳)',
-                      value:
-                          dashboardController.dashboardStats.value?.totalPayment
-                              .toString() ??
-                          '0',
-                      icon: Icons.account_balance_wallet,
-                      gradient: AppColors.blueGradient,
-                      onTap: () => Get.toNamed(AppRoutes.payments),
-                    ),
-                    StatsCard(
-                      title: 'Payment Successful (৳)',
-                      value:
-                          dashboardController
-                              .dashboardStats
-                              .value
-                              ?.paymentSuccessful
-                              .toString() ??
-                          '0',
-                      icon: Icons.check_circle,
-                      gradient: AppColors.greenGradient,
-                      onTap: () => Get.toNamed(AppRoutes.payments),
-                    ),
-                    StatsCard(
-                      title: 'Payment Pending (৳)',
-                      value:
-                          dashboardController
-                              .dashboardStats
-                              .value
-                              ?.paymentPending
-                              .toString() ??
-                          '0',
-                      icon: Icons.pending,
-                      gradient: AppColors.orangeGradient,
-                      onTap: () => Get.toNamed(AppRoutes.payments),
-                    ),
-                    StatsCard(
-                      title: 'Total Support Ticket',
-                      value:
-                          dashboardController
-                              .dashboardStats
-                              .value
-                              ?.totalSupportTicket
-                              .toString() ??
-                          '0',
-                      icon: Icons.support_agent,
-                      gradient: AppColors.purpleGradient,
-                      onTap: () => Get.toNamed(AppRoutes.support),
-                    ),
+                    // Welcome Header
+                    _buildWelcomeHeader(context, authController, size, isDark),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Quick Stats
+                    _buildQuickStats(dashboardController, size),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Current Package Section
+                    _buildCurrentPackageSection(dashboardController, isDark),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Network Usage Chart
+                    _buildNetworkUsageChart(dashboardController, isDark),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Quick Actions
+                    _buildQuickActions(context, size, isDark),
+                    
+                    const SizedBox(height: 100), // Space for bottom nav
                   ],
                 ),
-
-                const SizedBox(height: 24),
-
-                // Network Usage Chart
-                NetworkUsageChart(
-                  usageData:
-                      dashboardController.networkUsage
-                          .map(
-                            (usage) => {
-                              'time': usage.time,
-                              'rxBytes': usage.rxBytes,
-                              'txBytes': usage.txBytes,
-                            },
-                          )
-                          .toList(),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Current Package Info
-                _buildCurrentPackageSection(dashboardController),
-
-                const SizedBox(height: 100), // Bottom padding for navigation
-              ],
-            ),
-          ),
-        );
-      }),
+              ),
+            );
+          }),
+        ),
+      ),
       bottomNavigationBar: _buildBottomNavigation(context),
     );
   }
 
-  Widget _buildDrawer(BuildContext context, AuthController authController) {
-    return Drawer(
-      backgroundColor: AppColors.primary,
+  Widget _buildWelcomeHeader(BuildContext context, AuthController authController, Size size, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary, AppColors.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         children: [
-          // Drawer header
-          Container(
-            height: 150,
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(color: AppColors.primaryVariant),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.white,
+          Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Obx(() => Center(
                   child: Text(
                     authController.currentUser.value?.name
-                            .substring(0, 1)
-                            .toUpperCase() ??
-                        'U',
+                        .substring(0, 1).toUpperCase() ?? 'U',
                     style: const TextStyle(
-                      color: AppColors.primary,
+                      color: Colors.white,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
                     ),
                   ),
+                )),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Welcome Back!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Obx(() => Text(
+                      authController.currentUser.value?.name ?? 'User',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  authController.currentUser.value?.name ?? 'User',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              IconButton(
+                onPressed: () => Get.toNamed(AppRoutes.settings),
+                icon: const Icon(
+                  Icons.settings,
+                  color: Colors.white,
+                  size: 24,
                 ),
-              ],
-            ),
-          ),
-
-          // Menu items
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buildDrawerItem(
-                  icon: Icons.dashboard,
-                  title: 'Dashboard',
-                  onTap: () {
-                    Get.back();
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.inventory_2,
-                  title: 'User\'s Packages',
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(AppRoutes.packages);
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.subscriptions,
-                  title: 'My Subscription',
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(AppRoutes.subscription);
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.support_agent,
-                  title: 'Support Tickets',
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(AppRoutes.support);
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.payment,
-                  title: 'My Payment',
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(AppRoutes.payments);
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.person,
-                  title: 'My Profile',
-                  onTap: () {
-                    Get.back();
-                    Get.toNamed(AppRoutes.profile);
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.lock,
-                  title: 'Change Password',
-                  onTap: () {
-                    Get.back();
-                    // TODO: Navigate to change password screen
-                  },
-                ),
-                const Divider(color: Colors.white24),
-                _buildDrawerItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  onTap: () {
-                    Get.back();
-                    authController.logout();
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      onTap: onTap,
+  Widget _buildQuickStats(DashboardController dashboardController, Size size) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quick Overview',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: size.width > 400 ? 2 : 1,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: size.width > 400 ? 1.3 : 2.5,
+          children: [
+            _buildStatCard(
+              title: 'Total Balance',
+              value: '৳${dashboardController.dashboardStats.value?.totalPayment ?? 0}',
+              icon: Icons.account_balance_wallet,
+              color: const Color(0xFF4CAF50),
+              onTap: () => Get.toNamed(AppRoutes.payments),
+            ),
+            _buildStatCard(
+              title: 'Pending Payments',
+              value: '৳${dashboardController.dashboardStats.value?.paymentPending ?? 0}',
+              icon: Icons.pending_actions,
+              color: const Color(0xFFFF9800),
+              onTap: () => Get.toNamed(AppRoutes.payments),
+            ),
+            _buildStatCard(
+              title: 'Support Tickets',
+              value: '${dashboardController.dashboardStats.value?.totalSupportTicket ?? 0}',
+              icon: Icons.support_agent,
+              color: const Color(0xFF9C27B0),
+              onTap: () => Get.toNamed(AppRoutes.support),
+            ),
+            _buildStatCard(
+              title: 'Active Package',
+              value: '1',
+              icon: Icons.wifi,
+              color: const Color(0xFF2196F3),
+              onTap: () => Get.toNamed(AppRoutes.packages),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildCurrentPackageSection(DashboardController controller) {
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 20,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward,
+                  color: color,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentPackageSection(DashboardController dashboardController, bool isDark) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Current Package Information',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            children: [
+              Icon(
+                Icons.wifi,
+                color: AppColors.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Current Package',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          Obx(() {
-            final user = controller.currentUser.value;
-            if (user == null) return const SizedBox();
-
-            return Column(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[850] : Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Package', user.currentPackage),
-                _buildInfoRow('Price', user.packagePrice),
-                _buildInfoRow('Status', user.accStatus),
-                _buildInfoRow('Expires', user.expireDate),
+                const Text(
+                  'Basic Internet Package',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Speed: 10 Mbps',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Monthly: ৳800',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Status: Active',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+  Widget _buildNetworkUsageChart(DashboardController dashboardController, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.analytics,
+                color: AppColors.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Usage Analytics',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          NetworkUsageChart(
+            usageData: dashboardController.networkUsage
+                .map((usage) => {
+                      'time': usage.time,
+                      'rxBytes': usage.rxBytes,
+                      'txBytes': usage.txBytes,
+                    })
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, Size size, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quick Actions',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                title: 'Packages',
+                icon: Icons.wifi,
+                color: const Color(0xFF2196F3),
+                onTap: () => Get.toNamed(AppRoutes.packages),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionButton(
+                title: 'Payments',
+                icon: Icons.payment,
+                color: const Color(0xFF4CAF50),
+                onTap: () => Get.toNamed(AppRoutes.payments),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionButton(
+                title: 'Support',
+                icon: Icons.support_agent,
+                color: const Color(0xFF9C27B0),
+                onTap: () => Get.toNamed(AppRoutes.support),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -414,48 +511,86 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildBottomNavigation(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
         ],
       ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        currentIndex: 0,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              // Already on dashboard
-              break;
-            case 1:
-              Get.toNamed(AppRoutes.payments);
-              break;
-            case 2:
-              Get.toNamed(AppRoutes.profile);
-              break;
-            case 3:
-              Get.toNamed(AppRoutes.settings);
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Transactions',
+      child: SafeArea(
+        child: Container(
+          height: 80,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: Icons.home,
+                label: 'Home',
+                isActive: true,
+                onTap: () {},
+              ),
+              _buildNavItem(
+                icon: Icons.wifi,
+                label: 'Packages',
+                onTap: () => Get.toNamed(AppRoutes.packages),
+              ),
+              _buildNavItem(
+                icon: Icons.payment,
+                label: 'Payments',
+                onTap: () => Get.toNamed(AppRoutes.payments),
+              ),
+              _buildNavItem(
+                icon: Icons.person,
+                label: 'Profile',
+                onTap: () => Get.toNamed(AppRoutes.profile),
+              ),
+              _buildNavItem(
+                icon: Icons.support_agent,
+                label: 'Support',
+                onTap: () => Get.toNamed(AppRoutes.support),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    bool isActive = false,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isActive ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: isActive ? AppColors.primary : Colors.grey[600],
+              size: 20,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isActive ? AppColors.primary : Colors.grey[600],
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ],
       ),
