@@ -1,10 +1,17 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/storage_service.dart';
+import '../../../core/routes/app_routes.dart';
 
 class AuthController extends GetxController {
+  // Services
+  final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService.instance;
+
   // Text editing controllers
-  final clientCodeController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   // Observable variables
@@ -17,14 +24,25 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadSavedCredentials();
     checkLoginStatus();
   }
 
   @override
   void onClose() {
-    clientCodeController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     super.onClose();
+  }
+
+  void _loadSavedCredentials() {
+    final savedEmail = _storageService.getLastLoginEmail();
+    final rememberMeValue = _storageService.getRememberMe();
+
+    if (savedEmail != null && rememberMeValue) {
+      emailController.text = savedEmail;
+      rememberMe.value = true;
+    }
   }
 
   void togglePasswordVisibility() {
@@ -36,10 +54,10 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (clientCodeController.text.isEmpty || passwordController.text.isEmpty) {
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       Get.snackbar(
         'Error',
-        'Please enter both client code and password',
+        'Please enter both email and password',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -50,34 +68,48 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
+      final result = await _authService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-      // Simple dummy authentication
-      if (clientCodeController.text.trim() == 'shohan' &&
-          passwordController.text.trim() == 'password') {
-        final user = UserModel(
-          id: 'user_1',
-          clientCode: 'P0002',
-          userName: 'shohan',
-          fullName: 'Shohan Ahmed',
-          email: 'shohan@broadband.com',
-          phone: '+8801712345678',
-          address: 'Dhaka, Bangladesh',
-          status: 'Connected',
-          profileImage: '',
-          createdAt: DateTime(2024, 1, 15),
-          lastLogin: DateTime.now(),
-        );
+      if (result['success'] == true) {
+        final responseData = result['data'] as Map<String, dynamic>;
 
+        print('=== LOGIN SUCCESS DEBUG ===');
+        print('Login response data: $responseData');
+
+        // Create user model from response
+        final user = _authService.parseUserFromResponse(responseData);
         currentUser.value = user;
         isLoggedIn.value = true;
 
-        // Save login status if remember me is checked
+        print('User created: ${user.toJson()}');
+
+        // Save all login data
+        await _storageService.setLoginStatus(true);
+        await _storageService.saveUserData(user.toJson());
+
+        // Save credentials if remember me is checked
         if (rememberMe.value) {
-          // Here you would typically save to secure storage
-          // For now, we'll just keep it in memory
+          await _storageService.setRememberMe(true);
+          await _storageService.saveLastLoginEmail(emailController.text.trim());
+        } else {
+          await _storageService.setRememberMe(false);
         }
+
+        // Save token if available
+        if (responseData['token'] != null) {
+          await _storageService.saveUserToken(responseData['token']);
+          print('Token saved: ${responseData['token']}');
+        }
+
+        // Verify data was saved
+        final savedLoginStatus = _storageService.isLoggedIn();
+        final savedUserData = _storageService.getUserData();
+        print('Verification - Login status saved: $savedLoginStatus');
+        print('Verification - User data saved: ${savedUserData != null}');
+        print('=========================');
 
         Get.snackbar(
           'Success',
@@ -88,11 +120,11 @@ class AuthController extends GetxController {
         );
 
         // Navigate to home
-        Get.offAllNamed('/home');
+        Get.offAllNamed(AppRoutes.home);
       } else {
         Get.snackbar(
           'Error',
-          'Invalid client code or password',
+          result['message'] ?? 'Login failed',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -115,16 +147,17 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate logout process
-      await Future.delayed(const Duration(seconds: 1));
-
       currentUser.value = null;
       isLoggedIn.value = false;
 
-      // Clear form
-      clientCodeController.clear();
+      // Clear auth data from storage
+      await _storageService.clearAuthData();
+
+      // Clear form only if remember me is disabled
+      if (!_storageService.getRememberMe()) {
+        emailController.clear();
+      }
       passwordController.clear();
-      rememberMe.value = false;
 
       Get.snackbar(
         'Success',
@@ -134,7 +167,7 @@ class AuthController extends GetxController {
         colorText: Colors.white,
       );
 
-      Get.offAllNamed('/login');
+      Get.offAllNamed(AppRoutes.login);
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -148,10 +181,47 @@ class AuthController extends GetxController {
     }
   }
 
-  void checkLoginStatus() {
-    // Check if user is already logged in
-    // For demo purposes, we'll assume not logged in initially
-    isLoggedIn.value = false;
+  Future<void> checkLoginStatus() async {
+    try {
+      print('=== CHECK LOGIN STATUS ===');
+      final isLoggedInStored = _storageService.isLoggedIn();
+      print('Stored login status: $isLoggedInStored');
+
+      if (isLoggedInStored) {
+        final userData = _storageService.getUserData();
+        final token = await _storageService.getUserToken();
+
+        print('User data exists: ${userData != null}');
+        print('Token exists: ${token != null}');
+
+        if (userData != null && token != null) {
+          currentUser.value = UserModel.fromJson(userData);
+          isLoggedIn.value = true;
+          print('User restored: ${currentUser.value?.fullName}');
+
+          // Automatically navigate to home if already logged in
+          if (Get.currentRoute == AppRoutes.login ||
+              Get.currentRoute == AppRoutes.splash) {
+            print('Auto-navigating to home');
+            Get.offAllNamed(AppRoutes.home);
+          }
+        } else {
+          // Clear invalid login state
+          print('Clearing invalid login data');
+          await _storageService.clearAuthData();
+          isLoggedIn.value = false;
+        }
+      } else {
+        print('No login status stored');
+        isLoggedIn.value = false;
+      }
+      print('Final login status: ${isLoggedIn.value}');
+      print('========================');
+    } catch (e) {
+      print('Error checking login status: $e');
+      isLoggedIn.value = false;
+      await _storageService.clearAuthData();
+    }
   }
 
   void forgotPassword() {

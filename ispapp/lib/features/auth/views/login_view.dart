@@ -105,7 +105,7 @@ class LoginView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Client Code Field
+                    // Email Field
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -115,13 +115,18 @@ class LoginView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
-                        controller: authController.clientCodeController,
+                        controller: authController.emailController,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Client Code/User Name',
+                          labelText: 'Email Address',
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: Color(0xFF4A90E2),
                           ),
                         ),
                       ),
@@ -145,6 +150,10 @@ class LoginView extends StatelessWidget {
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 12,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: Colors.grey,
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
