@@ -86,11 +86,7 @@ class HomeView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      homeController
-                                              .currentUser
-                                              .value
-                                              ?.fullName ??
-                                          'jaman',
+                                      homeController.userName,
                                       style: const TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
@@ -175,6 +171,64 @@ class HomeView extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
+                  // Error Message Display
+                  if (homeController.errorMessage.value.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber,
+                              color: Colors.orange[700],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Connection Issue',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange[700],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Running in offline mode. Some data may be outdated.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.orange[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: homeController.loadDashboardData,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  if (homeController.errorMessage.value.isNotEmpty)
+                    const SizedBox(height: 16),
+
                   // Menu Grid
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -209,6 +263,57 @@ class HomeView extends StatelessWidget {
                           icon: Icons.chat_bubble,
                           title: 'Support\n& Ticket',
                           onTap: () => Get.toNamed('/support'),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Account Overview Cards
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Account Overview',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF424242),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildOverviewCard(
+                                icon: Icons.account_balance_wallet,
+                                title: 'Balance',
+                                value: '৳${homeController.accountBalance}',
+                                color: const Color(0xFF4CAF50),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildOverviewCard(
+                                icon: Icons.payment,
+                                title: 'Pending',
+                                value: '${homeController.paymentPending}',
+                                color: const Color(0xFFFF9800),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildOverviewCard(
+                                icon: Icons.support_agent,
+                                title: 'Tickets',
+                                value: '${homeController.supportTickets}',
+                                color: const Color(0xFF2196F3),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -559,6 +664,61 @@ class HomeView extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Color(0xFF424242),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF757575),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
             textAlign: TextAlign.center,
           ),

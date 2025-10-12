@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
+import 'package:ispapp/core/config/constants/api.dart';
+import 'package:ispapp/core/services/api_service.dart';
 import '../models/dashboard_model.dart';
 import '../../auth/models/user_model.dart';
 import '../../packages/models/package_model.dart';
@@ -11,8 +14,10 @@ class HomeController extends GetxController {
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
   final Rx<UserPackageModel?> currentPackage = Rx<UserPackageModel?>(null);
   final Rx<DashboardStats?> dashboardStats = Rx<DashboardStats?>(null);
+  final Rx<DashboardResponse?> dashboardData = Rx<DashboardResponse?>(null);
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
+  final RxString errorMessage = ''.obs;
   final userId = AppStorageHelper.get('user_id');
 
   @override
@@ -23,65 +28,159 @@ class HomeController extends GetxController {
 
   Future<void> loadDashboardData() async {
     isLoading.value = true;
+    errorMessage.value = '';
 
     try {
-      // Get current user from auth controller
-      currentUser.value = authController.currentUser.value;
+      print('🚀 Loading dashboard data for user: ${userId}');
 
-      if (currentUser.value != null) {
-        // Load user package - dummy data
-        final dummyPackage = PackageModel(
-          id: 'pkg_1',
-          name: '20MBPS',
-          speed: '20 Mbps',
-          price: 1500.0,
+      if (userId == null) {
+        errorMessage.value = 'User ID not found. Please login again.';
+        Get.snackbar('Error', 'User ID not found. Please login again.');
+        return;
+      }
+
+      // Fetch dashboard data from API
+      final response = await ApiService.instance.get(
+        '${AppApi.dashboard}/$userId',
+      );
+
+      print('📊 Dashboard API Response: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Parse dashboard response
+        dashboardData.value = DashboardResponse.fromJson(response.data);
+
+        // Update current user with API data
+        final userDetails = dashboardData.value!.details;
+        currentUser.value = UserModel(
+          userId: userDetails.id,
+          fullName: userDetails.name,
+          email: userDetails.email,
+          phone: userDetails.mobile,
+          address: userDetails.address,
+          userRole: userDetails.role,
+          adminId: userDetails.adminId,
+          clientCode: userDetails.code,
+          status: userDetails.status,
+          createdAt: _parseDate(userDetails.createdAt),
+        );
+
+        // Create package from user details
+        final packageInfo = PackageModel(
+          id: userDetails.packageId,
+          name: _getPackageName(userDetails.packageId),
+          speed: _getPackageSpeed(userDetails.packageId),
+          price: 0.0, // Will be updated when package API is available
           duration: '30 Days',
-          description: 'High-speed internet for home use',
-          isActive: true,
-          validUntil: DateTime(2099, 12, 31),
+          description: 'Internet package',
+          isActive: userDetails.status == 'active',
+          validUntil: _parseDate(userDetails.willExpire),
           packageType: 'Residential',
-          features: ['Unlimited Data', '24/7 Support', 'Free Installation'],
+          features: ['High Speed Internet', '24/7 Support'],
           dataLimit: 1000.0,
           dataUnit: 'GB',
         );
 
         currentPackage.value = UserPackageModel(
-          id: 'up_1',
-          userId: 'user_1',
-          package: dummyPackage,
-          startDate: DateTime(2024, 10, 1),
-          endDate: DateTime(2024, 12, 31),
-          uploadUsed: 0.7,
-          downloadUsed: 16.7,
-          status: 'Connected',
-          totalUptime: 6.5,
+          id: 'up_${userDetails.id}',
+          userId: userDetails.id,
+          package: packageInfo,
+          startDate: _parseDate(userDetails.lastRenewed),
+          endDate: _parseDate(userDetails.willExpire),
+          uploadUsed: 0.7, // Will be updated when usage API is available
+          downloadUsed: 16.7, // Will be updated when usage API is available
+          status: _getConnectionStatus(
+            userDetails.connStatus,
+            userDetails.activity,
+          ),
+          totalUptime: 6.5, // Will be updated when uptime API is available
         );
 
-        // Generate dashboard stats
-        dashboardStats.value = _generateDashboardStats();
+        // Generate dashboard stats with real data
+        dashboardStats.value = _generateDashboardStatsFromApi();
+
+        print('✅ Dashboard data loaded successfully');
+      } else {
+        errorMessage.value = 'Failed to load dashboard data';
+        Get.snackbar('Error', 'Failed to load dashboard data');
       }
     } catch (e) {
-      print('Error loading dashboard data: $e');
+      print('❌ Error loading dashboard data: $e');
+      errorMessage.value = 'Network error: $e';
+      Get.snackbar('Error', 'Failed to load dashboard: $e');
+
+      // Load fallback data
+      _loadFallbackData();
     } finally {
       isLoading.value = false;
     }
   }
 
+  void _loadFallbackData() {
+    print('📋 Loading fallback dashboard data');
+
+    // Load basic user data from auth controller
+    currentUser.value = authController.currentUser.value;
+
+    // Create fallback package data
+    final fallbackPackage = PackageModel(
+      id: 'fallback_pkg',
+      name: '20MBPS',
+      speed: '20 Mbps',
+      price: 1500.0,
+      duration: '30 Days',
+      description: 'High-speed internet for home use',
+      isActive: true,
+      validUntil: DateTime(2099, 12, 31),
+      packageType: 'Residential',
+      features: ['Unlimited Data', '24/7 Support', 'Free Installation'],
+      dataLimit: 1000.0,
+      dataUnit: 'GB',
+    );
+
+    currentPackage.value = UserPackageModel(
+      id: 'fallback_up',
+      userId: userId?.toString() ?? 'unknown',
+      package: fallbackPackage,
+      startDate: DateTime.now().subtract(const Duration(days: 20)),
+      endDate: DateTime.now().add(const Duration(days: 10)),
+      uploadUsed: 0.7,
+      downloadUsed: 16.7,
+      status: 'Connected (Offline Mode)',
+      totalUptime: 6.5,
+    );
+
+    // Generate fallback dashboard stats
+    dashboardStats.value = _generateDashboardStats();
+  }
+
   Future<void> refreshDashboardData() async {
     isRefreshing.value = true;
+    errorMessage.value = ''; // Clear any previous errors
 
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await loadDashboardData();
 
-    await loadDashboardData();
-
-    isRefreshing.value = false;
-
-    Get.snackbar(
-      'Success',
-      'Dashboard data refreshed',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+      if (errorMessage.value.isEmpty) {
+        Get.snackbar(
+          'Success',
+          'Dashboard data refreshed successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to refresh dashboard data',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } finally {
+      isRefreshing.value = false;
+    }
   }
 
   DashboardStats _generateDashboardStats() {
@@ -223,4 +322,137 @@ class HomeController extends GetxController {
     }
     return 0.0;
   }
+
+  // Helper methods for API data parsing
+  DateTime _parseDate(String dateString) {
+    try {
+      return DateTime.parse(dateString);
+    } catch (e) {
+      print('Error parsing date: $dateString, error: $e');
+      return DateTime.now();
+    }
+  }
+
+  String _getPackageName(String packageId) {
+    // Map package IDs to names - this should be updated based on your package data
+    const packageMap = {
+      '39': '20MBPS',
+      '42': '50MBPS',
+      '1': '10MBPS',
+      '2': '25MBPS',
+      '3': '100MBPS',
+    };
+    return packageMap[packageId] ?? '${packageId}MBPS';
+  }
+
+  String _getPackageSpeed(String packageId) {
+    // Map package IDs to speeds - this should be updated based on your package data
+    const speedMap = {
+      '39': '20 Mbps',
+      '42': '50 Mbps',
+      '1': '10 Mbps',
+      '2': '25 Mbps',
+      '3': '100 Mbps',
+    };
+    return speedMap[packageId] ?? '${packageId} Mbps';
+  }
+
+  String _getConnectionStatus(String connStatus, String activity) {
+    if (connStatus == 'conn' && activity == 'active') {
+      return 'Connected';
+    } else if (connStatus == 'conn' && activity == 'inactive') {
+      return 'Connected (Inactive)';
+    } else if (connStatus == 'disc') {
+      return 'Disconnected';
+    } else {
+      return 'Unknown';
+    }
+  }
+
+  DashboardStats _generateDashboardStatsFromApi() {
+    if (dashboardData.value == null) {
+      return _generateDashboardStats(); // Fallback to dummy data
+    }
+
+    // Generate chart data for the last 24 hours with some sample data
+    List<ChartData> chartData = [];
+    DateTime now = DateTime.now();
+
+    // Generate usage patterns for the last 24 hours
+    for (int i = 0; i < 24; i++) {
+      DateTime date = now.subtract(Duration(hours: 23 - i));
+
+      // Generate realistic usage patterns based on time of day
+      double download = _generateUsageForHour(i);
+      double upload = download * 0.1; // Upload is typically 10% of download
+
+      chartData.add(
+        ChartData(date: date, upload: upload, download: download, hour: i),
+      );
+    }
+
+    // Create news items from dashboard data
+    List<NewsItem> newsItems = [
+      NewsItem(
+        id: 'news_1',
+        title: 'Account Status',
+        description: 'Your account is ${dashboardData.value!.details.status}',
+        publishedAt: DateTime.now(),
+      ),
+      NewsItem(
+        id: 'news_2',
+        title: 'Connection Status',
+        description:
+            'Status: ${_getConnectionStatus(dashboardData.value!.details.connStatus, dashboardData.value!.details.activity)}',
+        publishedAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ),
+    ];
+
+    // Calculate uptime based on connection status
+    double uptime =
+        dashboardData.value!.details.connStatus == 'conn' ? 23.5 : 0.0;
+
+    return DashboardStats(
+      uploadSpeed: 0.5, // Mock upload speed
+      downloadSpeed: 45.0, // Mock download speed
+      uptime: uptime,
+      uploadUsage: 1.2, // Mock upload usage
+      downloadUsage: 25.8, // Mock download usage
+      usageChart: chartData,
+      recentNews: newsItems,
+    );
+  }
+
+  double _generateUsageForHour(int hour) {
+    // Generate realistic usage patterns based on time of day
+    if (hour >= 0 && hour < 6) {
+      return 5 + (hour * 2); // Low usage during night
+    } else if (hour >= 6 && hour < 9) {
+      return 15 + (hour * 3); // Morning usage increase
+    } else if (hour >= 9 && hour < 17) {
+      return 30 + (hour * 2); // Daytime moderate usage
+    } else if (hour >= 17 && hour < 22) {
+      return 50 + ((hour - 17) * 8); // Peak evening hours
+    } else {
+      return 60 - ((hour - 22) * 10); // Decline after 10 PM
+    }
+  }
+
+  // Getters for dashboard data
+  String get userName =>
+      dashboardData.value?.details.name ??
+      currentUser.value?.fullName ??
+      'Unknown User';
+  String get userEmail =>
+      dashboardData.value?.details.email ?? currentUser.value?.email ?? '';
+  String get userPhone =>
+      dashboardData.value?.details.mobile ?? currentUser.value?.phone ?? '';
+  String get userAddress =>
+      dashboardData.value?.details.address ?? currentUser.value?.address ?? '';
+  String get packageExpiry => dashboardData.value?.details.willExpire ?? 'N/A';
+  String get lastRenewal => dashboardData.value?.details.lastRenewed ?? 'N/A';
+  int get paymentReceived => dashboardData.value?.paymentReceived ?? 0;
+  int get paymentPending => dashboardData.value?.paymentPending ?? 0;
+  int get supportTickets => dashboardData.value?.totalSupportTicket ?? 0;
+  String get accountBalance => dashboardData.value?.details.fund ?? '0.00';
 }
