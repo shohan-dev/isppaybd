@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
@@ -19,6 +20,15 @@ class HomeController extends GetxController {
   final RxBool isRefreshing = false.obs;
   final RxString errorMessage = ''.obs;
   final userId = AppStorageHelper.get('user_id');
+
+  // Real-time traffic data
+  final Rx<RealTimeTrafficData?> currentTrafficData = Rx<RealTimeTrafficData?>(
+    null,
+  );
+  final RxList<RealTimeChartData> realTimeChartData = <RealTimeChartData>[].obs;
+  final RxBool isRealTimeActive = false.obs;
+  Timer? _trafficTimer;
+  String? _pppoeId;
 
   @override
   void onInit() {
@@ -96,8 +106,17 @@ class HomeController extends GetxController {
           totalUptime: 6.5, // Will be updated when uptime API is available
         );
 
+        // Extract PPPoE ID for real-time traffic data
+        _pppoeId =
+            dashboardData.value!.pppoe.isNotEmpty
+                ? dashboardData.value!.pppoe
+                : userDetails.pppoeId;
+
         // Generate dashboard stats with real data
         dashboardStats.value = _generateDashboardStatsFromApi();
+
+        // Start real-time traffic monitoring
+        _startRealTimeTrafficMonitoring();
 
         print('✅ Dashboard data loaded successfully');
       } else {
@@ -455,4 +474,166 @@ class HomeController extends GetxController {
   int get paymentPending => dashboardData.value?.paymentPending ?? 0;
   int get supportTickets => dashboardData.value?.totalSupportTicket ?? 0;
   String get accountBalance => dashboardData.value?.details.fund ?? '0.00';
+
+  // Real-time traffic monitoring methods
+  void _startRealTimeTrafficMonitoring() {
+    if (_pppoeId == null || _pppoeId!.isEmpty) {
+      print('❌ Cannot start real-time monitoring: PPPoE ID not found');
+      return;
+    }
+
+    print('🚀 Starting real-time traffic monitoring for PPPoE: $_pppoeId');
+    isRealTimeActive.value = true;
+
+    // Initialize chart data with empty values
+    realTimeChartData.clear();
+
+    // Start fetching data every second
+    _trafficTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _fetchRealTimeTrafficData();
+    });
+  }
+
+  void _stopRealTimeTrafficMonitoring() {
+    print('⏹️ Stopping real-time traffic monitoring');
+    _trafficTimer?.cancel();
+    _trafficTimer = null;
+    isRealTimeActive.value = false;
+  }
+
+  Future<void> _fetchRealTimeTrafficData() async {
+    try {
+      if (_pppoeId == null || _pppoeId!.isEmpty) {
+        print('❌ PPPoE ID not available for traffic data');
+        return;
+      }
+
+      // Construct the API URL with PPPoE name
+      // final trafficUrl = '${AppApi.rx_tx_data}$_pppoeId';
+      final trafficUrl =
+          '${AppApi.rx_tx_data}'
+          'sb903yeasin';
+
+      final response = await ApiService.instance.get(trafficUrl);
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Parse traffic data
+        final trafficData = RealTimeTrafficData.fromJson(response.data);
+        currentTrafficData.value = trafficData;
+
+        // Add to chart data (keep last 60 seconds)
+        realTimeChartData.add(
+          RealTimeChartData(
+            time: trafficData.timestamp,
+            upload: trafficData.uploadSpeed,
+            download: trafficData.downloadSpeed,
+          ),
+        );
+
+        // Keep only last 60 data points (60 seconds)
+        if (realTimeChartData.length > 60) {
+          realTimeChartData.removeAt(0);
+        }
+
+        // Update dashboard stats with real-time data
+        _updateDashboardStatsWithRealTimeData();
+      } else {
+        print('❌ Failed to fetch traffic data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error fetching real-time traffic data: $e');
+      // Don't show error to user for real-time data failures
+    }
+  }
+
+  void _updateDashboardStatsWithRealTimeData() {
+    if (dashboardStats.value != null && currentTrafficData.value != null) {
+      // Update the current stats with real-time data
+      final currentStats = dashboardStats.value!;
+      final realTimeData = currentTrafficData.value!;
+
+      dashboardStats.value = DashboardStats(
+        uploadSpeed: realTimeData.uploadSpeed,
+        downloadSpeed: realTimeData.downloadSpeed,
+        uptime: currentStats.uptime,
+        uploadUsage: currentStats.uploadUsage,
+        downloadUsage: currentStats.downloadUsage,
+        usageChart: _generateRealTimeChartData(),
+        recentNews: currentStats.recentNews,
+      );
+    }
+  }
+
+  List<ChartData> _generateRealTimeChartData() {
+    if (realTimeChartData.isEmpty) {
+      return _generateDummyChartData();
+    }
+
+    return realTimeChartData
+        .map(
+          (data) => ChartData(
+            date: data.time,
+            upload: data.upload,
+            download: data.download,
+            hour: data.time.hour,
+          ),
+        )
+        .toList();
+  }
+
+  List<ChartData> _generateDummyChartData() {
+    List<ChartData> chartData = [];
+    DateTime now = DateTime.now();
+
+    for (int i = 0; i < 60; i++) {
+      DateTime time = now.subtract(Duration(seconds: 59 - i));
+      chartData.add(
+        ChartData(date: time, upload: 0.0, download: 0.0, hour: time.hour),
+      );
+    }
+
+    return chartData;
+  }
+
+  // Getters for real-time data display
+  String get currentUploadSpeed =>
+      currentTrafficData.value?.uploadSpeed.toStringAsFixed(2) ?? '0.00';
+
+  String get currentDownloadSpeed =>
+      currentTrafficData.value?.downloadSpeed.toStringAsFixed(2) ?? '0.00';
+
+  String get trafficUnit => currentTrafficData.value?.unit ?? 'Mbps';
+
+  // Override onClose to cleanup timer
+  @override
+  void onClose() {
+    print('🧹 HomeController closing, cleaning up real-time monitoring');
+    _stopRealTimeTrafficMonitoring();
+    super.onClose();
+  }
+
+  // Lifecycle methods for proper cleanup
+  void pauseRealTimeMonitoring() {
+    if (_trafficTimer != null && _trafficTimer!.isActive) {
+      print('⏸️ Pausing real-time monitoring');
+      _trafficTimer?.cancel();
+    }
+  }
+
+  void resumeRealTimeMonitoring() {
+    if (isRealTimeActive.value &&
+        (_trafficTimer == null || !_trafficTimer!.isActive)) {
+      print('▶️ Resuming real-time monitoring');
+      _startRealTimeTrafficMonitoring();
+    }
+  }
+
+  // Method to manually toggle real-time monitoring
+  void toggleRealTimeMonitoring() {
+    if (isRealTimeActive.value) {
+      _stopRealTimeTrafficMonitoring();
+    } else {
+      _startRealTimeTrafficMonitoring();
+    }
+  }
 }

@@ -38,7 +38,6 @@ class UserDetails {
   final String mobile;
   final String? nidNumber;
   final String email;
-  final String password;
   final String address;
   final String pppoeId;
   final String lastRenewed;
@@ -68,7 +67,6 @@ class UserDetails {
     required this.mobile,
     this.nidNumber,
     required this.email,
-    required this.password,
     required this.address,
     required this.pppoeId,
     required this.lastRenewed,
@@ -100,7 +98,6 @@ class UserDetails {
       mobile: json['mobile']?.toString() ?? '',
       nidNumber: json['nid_number']?.toString(),
       email: json['email']?.toString() ?? '',
-      password: json['password']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       pppoeId: json['pppoe_id']?.toString() ?? '',
       lastRenewed: json['last_renewed']?.toString() ?? '',
@@ -215,4 +212,69 @@ class NewsItem {
       'image_url': imageUrl,
     };
   }
+}
+
+class RealTimeTrafficData {
+  final double uploadSpeed;
+  final double downloadSpeed;
+  final DateTime timestamp;
+  final String unit;
+
+  RealTimeTrafficData({
+    required this.uploadSpeed,
+    required this.downloadSpeed,
+    required this.timestamp,
+    this.unit = 'Mbps',
+  });
+
+  factory RealTimeTrafficData.fromJson(Map<String, dynamic> json) {
+    return RealTimeTrafficData(
+      uploadSpeed: _parseSpeed(json['tx'] ?? json['upload'] ?? 0),
+      downloadSpeed: _parseSpeed(json['rx'] ?? json['download'] ?? 0),
+      timestamp: DateTime.now(),
+      unit: json['unit'] ?? 'Mbps',
+    );
+  }
+
+  static double _parseSpeed(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      // Handle different formats like "1.5M", "1500K", etc.
+      final cleanValue = value.replaceAll(RegExp(r'[^0-9.]'), '');
+      if (cleanValue.isEmpty) return 0.0;
+      final numValue = double.tryParse(cleanValue) ?? 0.0;
+
+      if (value.toUpperCase().contains('K')) {
+        return numValue / 1000; // Convert Kbps to Mbps
+      } else if (value.toUpperCase().contains('M')) {
+        return numValue; // Already in Mbps
+      } else if (value.toUpperCase().contains('G')) {
+        return numValue * 1000; // Convert Gbps to Mbps
+      }
+      return numValue;
+    }
+    return 0.0;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'uploadSpeed': uploadSpeed,
+      'downloadSpeed': downloadSpeed,
+      'timestamp': timestamp.toIso8601String(),
+      'unit': unit,
+    };
+  }
+}
+
+class RealTimeChartData {
+  final DateTime time;
+  final double upload;
+  final double download;
+
+  RealTimeChartData({
+    required this.time,
+    required this.upload,
+    required this.download,
+  });
 }

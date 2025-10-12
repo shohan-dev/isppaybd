@@ -362,10 +362,10 @@ class HomeView extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        // Usage Chart
+                        // Real-time Traffic Chart
                         Container(
                           width: double.infinity,
-                          height: 220,
+                          height: 280, // Increased height to accommodate header
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -382,17 +382,100 @@ class HomeView extends StatelessWidget {
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               children: [
+                                // Real-time header
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Real-time Traffic',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF424242),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    GestureDetector(
+                                      onTap:
+                                          homeController
+                                              .toggleRealTimeMonitoring,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              homeController
+                                                      .isRealTimeActive
+                                                      .value
+                                                  ? Colors.green.withOpacity(
+                                                    0.1,
+                                                  )
+                                                  : Colors.grey.withOpacity(
+                                                    0.1,
+                                                  ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color:
+                                                homeController
+                                                        .isRealTimeActive
+                                                        .value
+                                                    ? Colors.green
+                                                    : Colors.grey,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    homeController
+                                                            .isRealTimeActive
+                                                            .value
+                                                        ? Colors.green
+                                                        : Colors.grey,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              homeController
+                                                      .isRealTimeActive
+                                                      .value
+                                                  ? 'LIVE'
+                                                  : 'OFF',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color:
+                                                    homeController
+                                                            .isRealTimeActive
+                                                            .value
+                                                        ? Colors.green
+                                                        : Colors.grey,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
                                 // Chart area
                                 Expanded(
                                   child: Container(
                                     width: double.infinity,
                                     child: CustomPaint(
-                                      painter: UsageChartPainter(
-                                        homeController
-                                                .dashboardStats
-                                                .value
-                                                ?.usageChart ??
-                                            [],
+                                      painter: RealTimeChartPainter(
+                                        homeController.realTimeChartData,
+                                        homeController.isRealTimeActive.value,
                                       ),
                                     ),
                                   ),
@@ -403,21 +486,47 @@ class HomeView extends StatelessWidget {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: [
-                                    Text(
-                                      'Download : ${homeController.dashboardStats.value?.downloadSpeed ?? 76} Mb/s',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF64B5F6),
-                                      ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF64B5F6),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Download: ${homeController.currentDownloadSpeed} ${homeController.trafficUnit}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF64B5F6),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      'Upload : ${homeController.dashboardStats.value?.uploadSpeed ?? 0} Mb/s',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF81C784),
-                                      ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF81C784),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Upload: ${homeController.currentUploadSpeed} ${homeController.trafficUnit}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF81C784),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -813,6 +922,206 @@ class UsageChartPainter extends CustomPainter {
       );
       textPainter.layout();
       textPainter.paint(canvas, Offset(2, y - 6));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// Real-time chart painter for live traffic visualization
+class RealTimeChartPainter extends CustomPainter {
+  final List<RealTimeChartData> data;
+  final bool isLive;
+
+  RealTimeChartPainter(this.data, this.isLive);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
+
+    // Chart dimensions
+    final double chartHeight = size.height - 40;
+    final double chartWidth = size.width - 40;
+    final double startX = 20;
+    final double startY = 20;
+
+    if (data.isEmpty) {
+      // Draw empty state
+      paint.color = Colors.grey.withOpacity(0.3);
+      paint.strokeWidth = 1;
+
+      // Draw grid
+      for (int i = 0; i <= 5; i++) {
+        double y = startY + (chartHeight / 5) * i;
+        canvas.drawLine(
+          Offset(startX, y),
+          Offset(startX + chartWidth, y),
+          paint,
+        );
+      }
+
+      // Draw "No Data" message
+      final textPainter = TextPainter(textDirection: TextDirection.ltr);
+      textPainter.text = const TextSpan(
+        text: 'Waiting for real-time data...',
+        style: TextStyle(color: Color(0xFF757575), fontSize: 14),
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          (size.width - textPainter.width) / 2,
+          (size.height - textPainter.height) / 2,
+        ),
+      );
+      return;
+    }
+
+    // Find max values for scaling
+    double maxDownload = data
+        .map((e) => e.download)
+        .reduce((a, b) => a > b ? a : b);
+    double maxUpload = data
+        .map((e) => e.upload)
+        .reduce((a, b) => a > b ? a : b);
+    double maxValue = maxDownload > maxUpload ? maxDownload : maxUpload;
+
+    if (maxValue == 0) maxValue = 10; // Minimum scale
+
+    // Draw grid lines
+    paint.color = Colors.grey.withOpacity(0.2);
+    paint.strokeWidth = 0.5;
+    paint.style = PaintingStyle.stroke;
+
+    for (int i = 0; i <= 5; i++) {
+      double y = startY + (chartHeight / 5) * i;
+      canvas.drawLine(Offset(startX, y), Offset(startX + chartWidth, y), paint);
+    }
+
+    // Draw vertical time grid (every 10 seconds)
+    for (int i = 0; i <= 6; i++) {
+      double x = startX + (chartWidth / 6) * i;
+      canvas.drawLine(
+        Offset(x, startY),
+        Offset(x, startY + chartHeight),
+        paint,
+      );
+    }
+
+    // Prepare paths for smooth lines
+    final downloadPath = Path();
+    final uploadPath = Path();
+
+    bool downloadPathStarted = false;
+    bool uploadPathStarted = false;
+
+    // Draw the real-time data as smooth lines
+    for (int i = 0; i < data.length; i++) {
+      double x = startX + (chartWidth / (data.length - 1)) * i;
+
+      // Download line
+      double downloadY =
+          startY + chartHeight - (data[i].download / maxValue) * chartHeight;
+      if (!downloadPathStarted) {
+        downloadPath.moveTo(x, downloadY);
+        downloadPathStarted = true;
+      } else {
+        downloadPath.lineTo(x, downloadY);
+      }
+
+      // Upload line
+      double uploadY =
+          startY + chartHeight - (data[i].upload / maxValue) * chartHeight;
+      if (!uploadPathStarted) {
+        uploadPath.moveTo(x, uploadY);
+        uploadPathStarted = true;
+      } else {
+        uploadPath.lineTo(x, uploadY);
+      }
+    }
+
+    // Draw download line
+    paint.color = const Color(0xFF64B5F6);
+    paint.strokeWidth = 3;
+    paint.style = PaintingStyle.stroke;
+    if (downloadPathStarted) {
+      canvas.drawPath(downloadPath, paint);
+    }
+
+    // Draw upload line
+    paint.color = const Color(0xFF81C784);
+    paint.strokeWidth = 3;
+    if (uploadPathStarted) {
+      canvas.drawPath(uploadPath, paint);
+    }
+
+    // Draw data points
+    paint.style = PaintingStyle.fill;
+    for (int i = 0; i < data.length; i++) {
+      double x = startX + (chartWidth / (data.length - 1)) * i;
+
+      // Download point
+      double downloadY =
+          startY + chartHeight - (data[i].download / maxValue) * chartHeight;
+      paint.color = const Color(0xFF64B5F6);
+      canvas.drawCircle(Offset(x, downloadY), 3, paint);
+
+      // Upload point
+      double uploadY =
+          startY + chartHeight - (data[i].upload / maxValue) * chartHeight;
+      paint.color = const Color(0xFF81C784);
+      canvas.drawCircle(Offset(x, uploadY), 3, paint);
+    }
+
+    // Draw current values if live
+    if (isLive && data.isNotEmpty) {
+      final lastData = data.last;
+      double lastX = startX + chartWidth;
+
+      // Pulse effect for live data
+      paint.color = Colors.red.withOpacity(0.6);
+      paint.style = PaintingStyle.stroke;
+      paint.strokeWidth = 2;
+
+      double downloadY =
+          startY + chartHeight - (lastData.download / maxValue) * chartHeight;
+      double uploadY =
+          startY + chartHeight - (lastData.upload / maxValue) * chartHeight;
+
+      canvas.drawCircle(Offset(lastX - 10, downloadY), 8, paint);
+      canvas.drawCircle(Offset(lastX - 10, uploadY), 8, paint);
+    }
+
+    // Draw scale numbers
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+
+    for (int i = 0; i <= 4; i++) {
+      double value = maxValue - (maxValue / 4) * i;
+      double y = startY + (chartHeight / 4) * i;
+
+      textPainter.text = TextSpan(
+        text: value.toStringAsFixed(1),
+        style: const TextStyle(color: Color(0xFF757575), fontSize: 10),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(2, y - 6));
+    }
+
+    // Draw time labels (last 60 seconds)
+    for (int i = 0; i <= 6; i++) {
+      double x = startX + (chartWidth / 6) * i;
+      int secondsAgo = 60 - (i * 10);
+
+      textPainter.text = TextSpan(
+        text: '${secondsAgo}s',
+        style: const TextStyle(color: Color(0xFF757575), fontSize: 9),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(x - 10, startY + chartHeight + 5));
     }
   }
 
