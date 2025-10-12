@@ -27,8 +27,15 @@ class HomeController extends GetxController {
   );
   final RxList<RealTimeChartData> realTimeChartData = <RealTimeChartData>[].obs;
   final RxBool isRealTimeActive = false.obs;
+  final RxBool isTrafficLoading = false.obs;
+  final RxInt trafficErrorCount = 0.obs;
   Timer? _trafficTimer;
-  String? _pppoeId;
+
+  // Production settings
+  static const int maxErrorCount = 3;
+  static const int maxDataPoints =
+      120; // 2 minutes of data at 1-second intervals
+  static const Duration fetchInterval = Duration(seconds: 1);
 
   @override
   void onInit() {
@@ -107,10 +114,7 @@ class HomeController extends GetxController {
         );
 
         // Extract PPPoE ID for real-time traffic data
-        _pppoeId =
-            dashboardData.value!.pppoe.isNotEmpty
-                ? dashboardData.value!.pppoe
-                : userDetails.pppoeId;
+        // _pppoeId = dashboardData.value!.pppoe;
 
         // Generate dashboard stats with real data
         dashboardStats.value = _generateDashboardStatsFromApi();
@@ -477,20 +481,34 @@ class HomeController extends GetxController {
 
   // Real-time traffic monitoring methods
   void _startRealTimeTrafficMonitoring() {
-    if (_pppoeId == null || _pppoeId!.isEmpty) {
-      print('❌ Cannot start real-time monitoring: PPPoE ID not found');
+    if (dashboardData.value?.details.routerId == null ||
+        dashboardData.value?.pppoe == null) {
+      print('❌ Cannot start real-time monitoring: Missing router ID or PPPoE');
       return;
     }
 
-    print('🚀 Starting real-time traffic monitoring for PPPoE: $_pppoeId');
+    print('🚀 Starting real-time traffic monitoring');
     isRealTimeActive.value = true;
+    trafficErrorCount.value = 0;
 
     // Initialize chart data with empty values
     realTimeChartData.clear();
 
-    // Start fetching data every second
-    _trafficTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _fetchRealTimeTrafficData();
+    // Start fetching data with production-ready timer
+    _trafficTimer = Timer.periodic(fetchInterval, (timer) async {
+      if (!isRealTimeActive.value) {
+        timer.cancel();
+        return;
+      }
+
+      // Stop monitoring if too many errors
+      if (trafficErrorCount.value >= maxErrorCount) {
+        print('⚠️ Stopping real-time monitoring due to excessive errors');
+        _stopRealTimeTrafficMonitoring();
+        return;
+      }
+
+      await _fetchRealTimeTrafficData();
     });
   }
 
@@ -499,68 +517,124 @@ class HomeController extends GetxController {
     _trafficTimer?.cancel();
     _trafficTimer = null;
     isRealTimeActive.value = false;
+    isTrafficLoading.value = false;
+    trafficErrorCount.value = 0;
   }
 
   Future<void> _fetchRealTimeTrafficData() async {
+    // Prevent multiple simultaneous calls
+    if (isTrafficLoading.value) return;
+
+    isTrafficLoading.value = true;
+
     try {
-      if (_pppoeId == null || _pppoeId!.isEmpty) {
-        print('❌ PPPoE ID not available for traffic data');
+      // Validate required data
+      if (dashboardData.value?.details.routerId == null ||
+          dashboardData.value?.pppoe == null) {
+        trafficErrorCount.value++;
         return;
       }
 
-      // Construct the API URL with PPPoE name
-      // final trafficUrl = '${AppApi.rx_tx_data}$_pppoeId';
-      final trafficUrl =
-          '${AppApi.rx_tx_data}'
-          'sb903yeasin';
+      final routerId = dashboardData.value!.details.routerId;
+      final pppoeId = dashboardData.value!.pppoe;
 
-      final response = await ApiService.instance.get(trafficUrl);
+      // Skip if PPPoE is empty (common case)
+      if (pppoeId.isEmpty) {
+        // Don't increment error count for empty PPPoE, just skip silently
+        return;
+      }
+
+      // Construct the API URL
+      final trafficUrl = '${AppApi.rx_tx_data}/$routerId?pppoe_name=$pppoeId';
+
+      // Make API call with timeout
+      final response = await ApiService.instance
+          .get(trafficUrl)
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () {
+              throw TimeoutException(
+                'Traffic API request timed out',
+                const Duration(seconds: 3),
+              );
+            },
+          );
 
       if (response.statusCode == 200 && response.data != null) {
+        // Reset error count on successful response
+        trafficErrorCount.value = 0;
+
         // Parse traffic data
         final trafficData = RealTimeTrafficData.fromJson(response.data);
-        currentTrafficData.value = trafficData;
 
-        // Add to chart data (keep last 60 seconds)
-        realTimeChartData.add(
-          RealTimeChartData(
-            time: trafficData.timestamp,
-            upload: trafficData.uploadSpeed,
-            download: trafficData.downloadSpeed,
-          ),
-        );
+        // Validate data sanity
+        if (trafficData.uploadSpeed >= 0 && trafficData.downloadSpeed >= 0) {
+          currentTrafficData.value = trafficData;
 
-        // Keep only last 60 data points (60 seconds)
-        if (realTimeChartData.length > 60) {
-          realTimeChartData.removeAt(0);
+          // Add to chart data with efficient list management
+          realTimeChartData.add(
+            RealTimeChartData(
+              time: trafficData.timestamp,
+              upload: trafficData.uploadSpeed,
+              download: trafficData.downloadSpeed,
+            ),
+          );
+
+          // Maintain optimal data size for performance
+          if (realTimeChartData.length > maxDataPoints) {
+            realTimeChartData.removeRange(
+              0,
+              realTimeChartData.length - maxDataPoints,
+            );
+          }
+
+          // Update dashboard stats efficiently (avoid unnecessary rebuilds)
+          _updateDashboardStatsWithRealTimeData();
+
+          print(
+            '📈 Traffic: ↑${trafficData.uploadSpeed.toStringAsFixed(2)} ↓${trafficData.downloadSpeed.toStringAsFixed(2)} Mbps',
+          );
         }
-
-        // Update dashboard stats with real-time data
-        _updateDashboardStatsWithRealTimeData();
       } else {
-        print('❌ Failed to fetch traffic data: ${response.statusCode}');
+        trafficErrorCount.value++;
+        if (trafficErrorCount.value <= 2) {
+          // Only log first few errors to avoid spam
+          print('⚠️ Traffic API error: ${response.statusCode}');
+        }
       }
     } catch (e) {
-      print('❌ Error fetching real-time traffic data: $e');
-      // Don't show error to user for real-time data failures
+      trafficErrorCount.value++;
+      if (trafficErrorCount.value <= 2) {
+        // Only log first few errors
+        print('⚠️ Traffic fetch error: ${e.toString().substring(0, 50)}...');
+      }
+    } finally {
+      isTrafficLoading.value = false;
     }
   }
 
   void _updateDashboardStatsWithRealTimeData() {
     if (dashboardStats.value != null && currentTrafficData.value != null) {
-      // Update the current stats with real-time data
+      // Only update if we have meaningful data change (avoid excessive rebuilds)
       final currentStats = dashboardStats.value!;
       final realTimeData = currentTrafficData.value!;
 
-      dashboardStats.value = DashboardStats(
-        uploadSpeed: realTimeData.uploadSpeed,
-        downloadSpeed: realTimeData.downloadSpeed,
-        uptime: currentStats.uptime,
-        uploadUsage: currentStats.uploadUsage,
-        downloadUsage: currentStats.downloadUsage,
-        usageChart: _generateRealTimeChartData(),
-        recentNews: currentStats.recentNews,
-      );
+      // Check if speeds actually changed significantly (0.1 Mbps threshold)
+      final speedChanged =
+          (currentStats.uploadSpeed - realTimeData.uploadSpeed).abs() > 0.1 ||
+          (currentStats.downloadSpeed - realTimeData.downloadSpeed).abs() > 0.1;
+
+      if (speedChanged || realTimeChartData.length <= 1) {
+        dashboardStats.value = DashboardStats(
+          uploadSpeed: realTimeData.uploadSpeed,
+          downloadSpeed: realTimeData.downloadSpeed,
+          uptime: currentStats.uptime,
+          uploadUsage: currentStats.uploadUsage,
+          downloadUsage: currentStats.downloadUsage,
+          usageChart: _generateRealTimeChartData(),
+          recentNews: currentStats.recentNews,
+        );
+      }
     }
   }
 
@@ -569,7 +643,13 @@ class HomeController extends GetxController {
       return _generateDummyChartData();
     }
 
-    return realTimeChartData
+    // Use the most recent 60 data points for optimal chart performance
+    final dataToShow =
+        realTimeChartData.length > 60
+            ? realTimeChartData.sublist(realTimeChartData.length - 60)
+            : realTimeChartData;
+
+    return dataToShow
         .map(
           (data) => ChartData(
             date: data.time,
@@ -604,6 +684,25 @@ class HomeController extends GetxController {
 
   String get trafficUnit => currentTrafficData.value?.unit ?? 'Mbps';
 
+  // Production-ready status indicators
+  bool get hasTrafficData => realTimeChartData.isNotEmpty;
+  bool get isTrafficHealthy => trafficErrorCount.value < maxErrorCount;
+  String get trafficStatusText {
+    if (!isRealTimeActive.value) return 'Offline';
+    if (isTrafficLoading.value) return 'Loading...';
+    if (!isTrafficHealthy) return 'Connection Issues';
+    if (!hasTrafficData) return 'Initializing...';
+    return 'Live';
+  }
+
+  Color get trafficStatusColor {
+    if (!isRealTimeActive.value) return Colors.grey;
+    if (isTrafficLoading.value) return Colors.orange;
+    if (!isTrafficHealthy) return Colors.red;
+    if (!hasTrafficData) return Colors.blue;
+    return Colors.green;
+  }
+
   // Override onClose to cleanup timer
   @override
   void onClose() {
@@ -632,8 +731,101 @@ class HomeController extends GetxController {
   void toggleRealTimeMonitoring() {
     if (isRealTimeActive.value) {
       _stopRealTimeTrafficMonitoring();
+      Get.snackbar(
+        'Info',
+        'Real-time monitoring stopped',
+        duration: const Duration(seconds: 2),
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } else {
-      _startRealTimeTrafficMonitoring();
+      if (dashboardData.value?.details.routerId != null) {
+        _startRealTimeTrafficMonitoring();
+        Get.snackbar(
+          'Info',
+          'Real-time monitoring started',
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } else {
+        Get.snackbar(
+          'Error',
+          'Unable to start monitoring: Router information not available',
+          duration: const Duration(seconds: 3),
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
     }
   }
+
+  // Payment statistics methods
+  List<PaymentChartData> getPaymentChartData() {
+    if (dashboardData.value?.statistics == null) {
+      return _getDefaultPaymentChartData();
+    }
+
+    final stats = dashboardData.value!.statistics;
+    List<PaymentChartData> chartData = [];
+
+    for (int i = 0; i < stats.months.length; i++) {
+      chartData.add(
+        PaymentChartData(
+          month: stats.months[i],
+          monthIndex: i,
+          successful: stats.successful[i].toDouble(),
+          pending: stats.pending[i].toDouble(),
+          failed: stats.failed[i].toDouble(),
+        ),
+      );
+    }
+
+    return chartData;
+  }
+
+  List<PaymentChartData> _getDefaultPaymentChartData() {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return months.asMap().entries.map((entry) {
+      return PaymentChartData(
+        month: entry.value,
+        monthIndex: entry.key,
+        successful: 0,
+        pending: 0,
+        failed: 0,
+      );
+    }).toList();
+  }
+
+  // Get payment summary text
+  String getPaymentSummary() {
+    final data = getPaymentChartData();
+    final totalSuccessful = data.fold(
+      0.0,
+      (sum, item) => sum + item.successful,
+    );
+    final totalPending = data.fold(0.0, (sum, item) => sum + item.pending);
+    final totalFailed = data.fold(0.0, (sum, item) => sum + item.failed);
+
+    return 'Total: ${totalSuccessful.toInt()} successful, ${totalPending.toInt()} pending, ${totalFailed.toInt()} failed';
+  }
+
+  // Dynamic getters that update with real API data
+  String get dynamicPaymentReceived =>
+      dashboardData.value?.paymentReceived.toString() ?? '0';
+  String get dynamicPaymentPending =>
+      dashboardData.value?.paymentPending.toString() ?? '0';
+  String get dynamicSupportTickets =>
+      dashboardData.value?.totalSupportTicket.toString() ?? '0';
 }

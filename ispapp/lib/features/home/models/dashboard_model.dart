@@ -228,11 +228,43 @@ class RealTimeTrafficData {
   });
 
   factory RealTimeTrafficData.fromJson(Map<String, dynamic> json) {
+    // Handle the new API response structure:
+    // {"status": "success", "response": {"data": {"traffic": {"rxbyte": 0.074944, "txbyte": 8.190656}}}}
+    Map<String, dynamic> trafficData = json;
+
+    // Check if it's the nested structure
+    if (json['status'] == 'success' && json['response'] != null) {
+      final responseData = json['response']['data'];
+      if (responseData != null && responseData['traffic'] != null) {
+        trafficData = responseData['traffic'];
+      }
+    }
+
+    // Parse timestamp
+    DateTime timestamp = DateTime.now();
+    if (trafficData['date'] != null) {
+      try {
+        timestamp = DateTime.parse(trafficData['date']);
+      } catch (e) {
+        // Keep current time if parsing fails
+      }
+    }
+
     return RealTimeTrafficData(
-      uploadSpeed: _parseSpeed(json['tx'] ?? json['upload'] ?? 0),
-      downloadSpeed: _parseSpeed(json['rx'] ?? json['download'] ?? 0),
-      timestamp: DateTime.now(),
-      unit: json['unit'] ?? 'Mbps',
+      uploadSpeed: _parseSpeed(
+        trafficData['txbyte'] ??
+            trafficData['tx'] ??
+            trafficData['upload'] ??
+            0,
+      ),
+      downloadSpeed: _parseSpeed(
+        trafficData['rxbyte'] ??
+            trafficData['rx'] ??
+            trafficData['download'] ??
+            0,
+      ),
+      timestamp: timestamp,
+      unit: 'Mbps', // The data is already in Mbps according to your description
     );
   }
 
@@ -277,4 +309,22 @@ class RealTimeChartData {
     required this.upload,
     required this.download,
   });
+}
+
+class PaymentChartData {
+  final String month;
+  final int monthIndex;
+  final double successful;
+  final double pending;
+  final double failed;
+
+  PaymentChartData({
+    required this.month,
+    required this.monthIndex,
+    required this.successful,
+    required this.pending,
+    required this.failed,
+  });
+
+  double get total => successful + pending + failed;
 }

@@ -6,6 +6,5 @@ class AppApi {
   // auth
   static const String login = '${baseUrl}validate';
   static const String dashboard = '${baseUrl}users';
-  static const String rx_tx_data =
-      '${baseUrl}users_load-traffic/35?pppoe_name=';
+  static const String rx_tx_data = '${baseUrl}users_load-traffic';
 }
