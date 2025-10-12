@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
-import 'package:ispapp/core/services/storage_service.dart';
+import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 
 class SplashScreenController extends GetxController {
   // Timer for splash screen duration
   final RxBool isLoading = true.obs;
-  final StorageService _storageService = StorageService.instance;
+
+  // Storage key for user_id - same as AuthController
+  static const String _keyUserId = 'user_id';
 
   @override
   void onInit() {
@@ -18,30 +20,24 @@ class SplashScreenController extends GetxController {
     await Future.delayed(const Duration(seconds: 2));
 
     try {
-      // Check if user is logged in using StorageService
-      final isLoggedIn = _storageService.isLoggedIn();
-      final userData = _storageService.getUserData();
-      final token = await _storageService.getUserToken();
+      final islogin = AppStorageHelper.get(_keyUserId);
+      final userId = AppStorageHelper.get<String>(_keyUserId);
 
-      print('=== SPLASH DEBUG ===');
-      print('User logged in: $isLoggedIn');
-      print('User data exists: ${userData != null}');
-      print('Token exists: ${token != null}');
-      print('==================');
+      // Debugging output
+      print('💾 Storage check - user_id: $userId');
+      print('🔐 Is user logged in? $islogin');
 
-      // User is considered logged in if they have both login status and user data
-      if (isLoggedIn) {
-        print('Navigating to home screen');
-        Get.offNamed(AppRoutes.home);
+      if (islogin != null) {
+        print('✅ User authenticated (ID: $userId) → Dashboard');
+        Get.offAllNamed(AppRoutes.dashboard);
       } else {
-        print('Navigating to login screen');
-        // Clear any invalid data
-        Get.offNamed(AppRoutes.login);
+        print('❌ User not authenticated → Login');
+        Get.offAllNamed(AppRoutes.login);
       }
     } catch (e) {
-      print('Error checking login status: $e');
-      // On error, navigate to login
-      Get.offNamed(AppRoutes.login);
+      print('💥 SPLASH ERROR: $e');
+      print('🔄 Defaulting to login screen');
+      Get.offAllNamed(AppRoutes.login);
     }
   }
 }

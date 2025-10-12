@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import '../models/dashboard_model.dart';
 import '../../auth/models/user_model.dart';
 import '../../packages/models/package_model.dart';
@@ -12,6 +13,7 @@ class HomeController extends GetxController {
   final Rx<DashboardStats?> dashboardStats = Rx<DashboardStats?>(null);
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
+  final userId = AppStorageHelper.get('user_id');
 
   @override
   void onInit() {

@@ -98,7 +98,7 @@ class HomeView extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      'Client Code : ${homeController.currentUser.value?.clientCode ?? 'P0002'}',
+                                      'Client User ID : ${homeController.userId}',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         color: Colors.white70,

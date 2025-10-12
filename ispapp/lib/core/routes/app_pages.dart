@@ -28,6 +28,13 @@ class AppPages {
       bindings: [HomeBinding(), BottomNavBinding()],
     ),
 
+    // Dashboard Route (same as home)
+    GetPage(
+      name: AppRoutes.dashboard,
+      page: () => BottomNavBar(),
+      bindings: [HomeBinding(), BottomNavBinding()],
+    ),
+
     // Feature Routes
     GetPage(
       name: AppRoutes.packages,

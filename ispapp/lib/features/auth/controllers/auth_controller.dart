@@ -2,13 +2,17 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../core/helpers/local_storage/storage_helper.dart';
 import '../../../core/routes/app_routes.dart';
 
 class AuthController extends GetxController {
   // Services
   final AuthService _authService = AuthService();
-  final StorageService _storageService = StorageService.instance;
+
+  // Storage keys - simplified to only store user_id
+  static const String _keyUserId = 'user_id';
+  static const String _keyRememberMe = 'remember_me';
+  static const String _keyLastLoginEmail = 'last_login_email';
 
   // Text editing controllers
   final emailController = TextEditingController();
@@ -24,8 +28,18 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadSavedCredentials();
-    checkLoginStatus();
+    _initializeAuth();
+  }
+
+  Future<void> _initializeAuth() async {
+    try {
+      // Ensure storage is initialized before any operations
+      await AppStorageHelper.init();
+      _loadSavedCredentials();
+      checkLoginStatus();
+    } catch (e) {
+      print('❌ Auth initialization failed: $e');
+    }
   }
 
   @override
@@ -36,8 +50,10 @@ class AuthController extends GetxController {
   }
 
   void _loadSavedCredentials() {
-    final savedEmail = _storageService.getLastLoginEmail();
-    final rememberMeValue = _storageService.getRememberMe();
+    final savedEmail = AppStorageHelper.get<String>(_keyLastLoginEmail);
+    final rememberMeValue =
+        AppStorageHelper.get<bool>(_keyRememberMe, defaultValue: false) ??
+        false;
 
     if (savedEmail != null && rememberMeValue) {
       emailController.text = savedEmail;
@@ -79,48 +95,61 @@ class AuthController extends GetxController {
         print('=== LOGIN SUCCESS DEBUG ===');
         print('Login response data: $responseData');
 
-        // Create user model from response
-        final user = _authService.parseUserFromResponse(responseData);
-        currentUser.value = user;
+        // Extract user_id from the API response
+        final responseObj = responseData['response'] as Map<String, dynamic>;
+        final userId = responseObj['user_id']?.toString() ?? '';
+        final userRole = responseObj['user_role']?.toString() ?? 'user';
+        final adminId = responseObj['admin_id']?.toString() ?? '';
+
+        print('Extracted user_id: $userId');
+        print('Extracted user_role: $userRole');
+        print('Extracted admin_id: $adminId');
+
+        // Ensure storage is ready before saving critical data
+        print('🔧 Ensuring storage is ready...');
+        await AppStorageHelper.init();
+
+        // Save only the user_id (this indicates user is logged in)
+        print('💾 Saving user_id: $userId');
+        AppStorageHelper.put(_keyUserId, userId);
+
+        // Update controller state
         isLoggedIn.value = true;
-
-        print('User created: ${user.toJson()}');
-
-        // Save all login data
-        await _storageService.setLoginStatus(true);
-        await _storageService.saveUserData(user.toJson());
 
         // Save credentials if remember me is checked
         if (rememberMe.value) {
-          await _storageService.setRememberMe(true);
-          await _storageService.saveLastLoginEmail(emailController.text.trim());
+          AppStorageHelper.put(_keyRememberMe, true);
+          AppStorageHelper.put(_keyLastLoginEmail, emailController.text.trim());
         } else {
-          await _storageService.setRememberMe(false);
+          AppStorageHelper.put(_keyRememberMe, false);
         }
 
-        // Save token if available
-        if (responseData['token'] != null) {
-          await _storageService.saveUserToken(responseData['token']);
-          print('Token saved: ${responseData['token']}');
-        }
+        // Critical verification step
+        await Future.delayed(
+          Duration(milliseconds: 100),
+        ); // Allow storage to complete
+        final savedUserId = AppStorageHelper.get<String>(_keyUserId);
+        final rawSavedValue = AppStorageHelper.get(_keyUserId);
 
-        // Verify data was saved
-        final savedLoginStatus = _storageService.isLoggedIn();
-        final savedUserData = _storageService.getUserData();
-        print('Verification - Login status saved: $savedLoginStatus');
-        print('Verification - User data saved: ${savedUserData != null}');
+        print('🔍 VERIFICATION RESULTS:');
+        print('   Raw saved value: $rawSavedValue');
+        print('   Typed user_id: $savedUserId');
+        print('   Original user_id: $userId');
+        print('   Save successful: ${savedUserId == userId}');
+        print('   Is null: ${savedUserId == null}');
+        print('   Is empty: ${savedUserId?.isEmpty}');
         print('=========================');
 
         Get.snackbar(
           'Success',
-          'Login successful! Welcome ${user.fullName}',
+          'Login successful! Welcome User',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
 
-        // Navigate to home
-        Get.offAllNamed(AppRoutes.home);
+        // Navigate to dashboard
+        Get.offAllNamed(AppRoutes.dashboard);
       } else {
         Get.snackbar(
           'Error',
@@ -150,12 +179,16 @@ class AuthController extends GetxController {
       currentUser.value = null;
       isLoggedIn.value = false;
 
-      // Clear auth data from storage
-      await _storageService.clearAuthData();
+      // Clear auth data from storage (only user_id)
+      AppStorageHelper.logout();
 
       // Clear form only if remember me is disabled
-      if (!_storageService.getRememberMe()) {
+      final rememberMeValue =
+          AppStorageHelper.get<bool>(_keyRememberMe, defaultValue: false) ??
+          false;
+      if (!rememberMeValue) {
         emailController.clear();
+        AppStorageHelper.delete(_keyLastLoginEmail);
       }
       passwordController.clear();
 
@@ -184,35 +217,15 @@ class AuthController extends GetxController {
   Future<void> checkLoginStatus() async {
     try {
       print('=== CHECK LOGIN STATUS ===');
-      final isLoggedInStored = _storageService.isLoggedIn();
-      print('Stored login status: $isLoggedInStored');
+      final savedUserId = AppStorageHelper.get<String>(_keyUserId);
+      print('Stored user_id: $savedUserId');
 
-      if (isLoggedInStored) {
-        final userData = _storageService.getUserData();
-        final token = await _storageService.getUserToken();
-
-        print('User data exists: ${userData != null}');
-        print('Token exists: ${token != null}');
-
-        if (userData != null && token != null) {
-          currentUser.value = UserModel.fromJson(userData);
-          isLoggedIn.value = true;
-          print('User restored: ${currentUser.value?.fullName}');
-
-          // Automatically navigate to home if already logged in
-          if (Get.currentRoute == AppRoutes.login ||
-              Get.currentRoute == AppRoutes.splash) {
-            print('Auto-navigating to home');
-            Get.offAllNamed(AppRoutes.home);
-          }
-        } else {
-          // Clear invalid login state
-          print('Clearing invalid login data');
-          await _storageService.clearAuthData();
-          isLoggedIn.value = false;
-        }
+      if (savedUserId != null && savedUserId.isNotEmpty) {
+        isLoggedIn.value = true;
+        print('User is logged in with ID: $savedUserId');
+        // Don't auto-navigate here since splash already handles it
       } else {
-        print('No login status stored');
+        print('No user_id stored - user not logged in');
         isLoggedIn.value = false;
       }
       print('Final login status: ${isLoggedIn.value}');
@@ -220,8 +233,13 @@ class AuthController extends GetxController {
     } catch (e) {
       print('Error checking login status: $e');
       isLoggedIn.value = false;
-      await _storageService.clearAuthData();
+      await _clearAuthData();
     }
+  }
+
+  // Helper method to clear auth data
+  Future<void> _clearAuthData() async {
+    AppStorageHelper.delete(_keyUserId);
   }
 
   void forgotPassword() {

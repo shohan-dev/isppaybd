@@ -1,5 +1,7 @@
 class UserModel {
-  final String id;
+  final String userId;
+  final String userRole;
+  final String adminId;
   final String clientCode;
   final String userName;
   final String fullName;
@@ -11,15 +13,20 @@ class UserModel {
   final DateTime createdAt;
   final DateTime? lastLogin;
 
+  // Getter for backward compatibility
+  String get id => userId;
+
   UserModel({
-    required this.id,
-    required this.clientCode,
-    required this.userName,
-    required this.fullName,
-    required this.email,
-    required this.phone,
-    required this.address,
-    required this.status,
+    required this.userId,
+    required this.userRole,
+    required this.adminId,
+    this.clientCode = '',
+    this.userName = '',
+    this.fullName = '',
+    this.email = '',
+    this.phone = '',
+    this.address = '',
+    this.status = 'active',
     this.profileImage = '',
     required this.createdAt,
     this.lastLogin,
@@ -27,27 +34,30 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? '',
+      userId: json['user_id'] ?? json['id'] ?? '',
+      userRole: json['user_role'] ?? 'user',
+      adminId: json['admin_id'] ?? '',
       clientCode: json['client_code'] ?? '',
-      userName: json['user_name'] ?? '',
-      fullName: json['full_name'] ?? '',
+      userName: json['user_name'] ?? json['username'] ?? '',
+      fullName: json['full_name'] ?? json['name'] ?? '',
       email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
+      phone: json['phone'] ?? json['mobile'] ?? '',
       address: json['address'] ?? '',
-      status: json['status'] ?? '',
-      profileImage: json['profile_image'] ?? '',
-      createdAt: DateTime.parse(
-        json['created_at'] ?? DateTime.now().toIso8601String(),
-      ),
-      lastLogin: json['last_login'] != null
-          ? DateTime.parse(json['last_login'])
-          : null,
+      status: json['status'] ?? 'active',
+      profileImage: json['profile_image'] ?? json['avatar'] ?? '',
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      lastLogin:
+          json['last_login'] != null
+              ? DateTime.tryParse(json['last_login'])
+              : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'user_id': userId,
+      'user_role': userRole,
+      'admin_id': adminId,
       'client_code': clientCode,
       'user_name': userName,
       'full_name': fullName,
@@ -62,7 +72,9 @@ class UserModel {
   }
 
   UserModel copyWith({
-    String? id,
+    String? userId,
+    String? userRole,
+    String? adminId,
     String? clientCode,
     String? userName,
     String? fullName,
@@ -75,7 +87,9 @@ class UserModel {
     DateTime? lastLogin,
   }) {
     return UserModel(
-      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      userRole: userRole ?? this.userRole,
+      adminId: adminId ?? this.adminId,
       clientCode: clientCode ?? this.clientCode,
       userName: userName ?? this.userName,
       fullName: fullName ?? this.fullName,

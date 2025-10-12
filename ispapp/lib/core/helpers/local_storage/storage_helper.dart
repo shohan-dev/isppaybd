@@ -6,10 +6,26 @@ class AppStorageHelper {
 
   /// Initialize Hive and open default box
   static Future<void> init() async {
-    if (!initialized) {
-      await Hive.initFlutter();
-      await Hive.openBox(_defaultBox);
-      initialized = true;
+    try {
+      if (!initialized) {
+        print('🚀 Initializing AppStorageHelper...');
+        await Hive.initFlutter();
+        await Hive.openBox(_defaultBox);
+        initialized = true;
+        print('✅ AppStorageHelper initialized successfully');
+      } else {
+        print('📋 AppStorageHelper already initialized');
+        // Double-check box is still open
+        if (!Hive.isBoxOpen(_defaultBox)) {
+          print('⚠️ Box was unexpectedly closed, reopening...');
+          await Hive.openBox(_defaultBox);
+          print('✅ Box reopened successfully');
+        }
+      }
+    } catch (e) {
+      print('❌ CRITICAL: Failed to initialize AppStorageHelper: $e');
+      initialized = false;
+      rethrow;
     }
   }
 
@@ -37,13 +53,39 @@ class AppStorageHelper {
     String boxName = _defaultBox,
     Duration? ttl,
   }) {
-    final box = _openBoxSync(boxName);
+    try {
+      final box = _openBoxSync(boxName);
 
-    if (ttl != null) {
-      final expiry = DateTime.now().add(ttl).millisecondsSinceEpoch;
-      box.put(key, {"value": value, "expiry": expiry});
-    } else {
-      box.put(key, value);
+      if (ttl != null) {
+        final expiry = DateTime.now().add(ttl).millisecondsSinceEpoch;
+        box.put(key, {"value": value, "expiry": expiry});
+      } else {
+        box.put(key, value);
+      }
+      print('✅ Storage PUT success: $key = $value');
+    } catch (e) {
+      print('❌ Storage PUT failed: $key = $value, Error: $e');
+      print('🔄 Attempting to reinitialize storage...');
+
+      // Emergency fix: Try to reinitialize storage
+      try {
+        if (!Hive.isBoxOpen(boxName)) {
+          print('📦 Box $boxName was not open, this should not happen');
+        }
+        // Force get the box reference and try again
+        final box = Hive.box(boxName);
+
+        if (ttl != null) {
+          final expiry = DateTime.now().add(ttl).millisecondsSinceEpoch;
+          box.put(key, {"value": value, "expiry": expiry});
+        } else {
+          box.put(key, value);
+        }
+        print('✅ Storage PUT retry success: $key = $value');
+      } catch (retryError) {
+        print('❌ Storage PUT retry failed: $retryError');
+        print('⚠️ CRITICAL: Storage is completely broken!');
+      }
     }
   }
 
@@ -53,19 +95,30 @@ class AppStorageHelper {
     String boxName = _defaultBox,
     T? defaultValue,
   }) {
-    final box = _openBoxSync(boxName);
-    final data = box.get(key);
+    try {
+      final box = _openBoxSync(boxName);
+      final data = box.get(key);
 
-    if (data is Map && data.containsKey("expiry")) {
-      final expiry = data["expiry"] as int;
-      if (expiry < DateTime.now().millisecondsSinceEpoch) {
-        box.delete(key);
-        return defaultValue;
+      if (data is Map && data.containsKey("expiry")) {
+        final expiry = data["expiry"] as int;
+        if (expiry < DateTime.now().millisecondsSinceEpoch) {
+          box.delete(key);
+          print('⏰ Expired data removed for key: $key');
+          return defaultValue;
+        }
+        final result = _cast<T>(data["value"]) ?? defaultValue;
+        print('✅ Storage GET success (TTL): $key = $result');
+        return result;
       }
-      return _cast<T>(data["value"]) ?? defaultValue;
-    }
 
-    return _cast<T>(data) ?? defaultValue;
+      final result = _cast<T>(data) ?? defaultValue;
+      print('✅ Storage GET success: $key = $result');
+      return result;
+    } catch (e) {
+      print('❌ Storage GET failed: $key, Error: $e');
+      print('🔄 Returning default value: $defaultValue');
+      return defaultValue;
+    }
   }
 
   /// Check if a key exists in the storage
@@ -75,7 +128,12 @@ class AppStorageHelper {
 
   /// Delete a specific key
   static void delete(String key, {String boxName = _defaultBox}) {
-    _openBoxSync(boxName).delete(key);
+    try {
+      _openBoxSync(boxName).delete(key);
+      print('✅ Storage DELETE success: $key');
+    } catch (e) {
+      print('❌ Storage DELETE failed: $key, Error: $e');
+    }
   }
 
   /// Clear a specific box synchronously

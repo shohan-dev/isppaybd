@@ -34,12 +34,16 @@ class AuthService {
             return {
               'success': true,
               'data': data,
-              'message': data['response'] ?? 'Login successful',
+              'message':
+                  data['response']?['msg'] ??
+                  data['message'] ??
+                  'Login successful',
             };
           } else {
             return {
               'success': false,
-              'message': data['response'] ?? 'Login failed',
+              'message':
+                  data['response']?['msg'] ?? data['message'] ?? 'Login failed',
             };
           }
         } else {
@@ -77,17 +81,22 @@ class AuthService {
   }
 
   UserModel parseUserFromResponse(Map<String, dynamic> data) {
-    // Parse user data from API response
-    final userData = data['user'] ?? data['data'] ?? data;
+    // Parse user data from API response - handle new format
+    final responseData = data['response'] ?? data;
+    final userData =
+        responseData['user'] ?? responseData['data'] ?? responseData;
 
     return UserModel(
-      id:
+      userId:
+          userData['user_id']?.toString() ??
           userData['id']?.toString() ??
           DateTime.now().millisecondsSinceEpoch.toString(),
+      userRole: userData['user_role']?.toString() ?? 'user',
+      adminId: userData['admin_id']?.toString() ?? '',
       clientCode:
           userData['client_code']?.toString() ??
           userData['customer_id']?.toString() ??
-          'N/A',
+          '',
       userName:
           userData['username']?.toString() ??
           userData['email']?.toString() ??
@@ -100,7 +109,7 @@ class AuthService {
       phone:
           userData['phone']?.toString() ?? userData['mobile']?.toString() ?? '',
       address: userData['address']?.toString() ?? '',
-      status: userData['status']?.toString() ?? 'Active',
+      status: userData['status']?.toString() ?? 'active',
       profileImage:
           userData['profile_image']?.toString() ??
           userData['avatar']?.toString() ??

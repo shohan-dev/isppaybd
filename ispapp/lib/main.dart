@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'core/config/theme/app_theme.dart';
-import 'core/services/storage_service.dart';
+import 'core/helpers/local_storage/storage_helper.dart';
 import 'core/routes/app_routes.dart';
 import 'core/routes/app_pages.dart';
 import 'core/bindings/app_bindings.dart';
@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize storage service
-  await StorageService.init();
+  await AppStorageHelper.init();
 
   runApp(const MyApp());
 }

@@ -8,7 +8,9 @@ class DummyDataService {
   // Dummy Users
   static List<UserModel> dummyUsers = [
     UserModel(
-      id: 'user_1',
+      userId: 'user_1',
+      userRole: 'user',
+      adminId: '369',
       clientCode: 'P0002',
       userName: 'jaman',
       fullName: 'Jaman Ahmed',
@@ -21,7 +23,9 @@ class DummyDataService {
       lastLogin: DateTime.now().subtract(Duration(hours: 2)),
     ),
     UserModel(
-      id: 'user_2',
+      userId: 'user_2',
+      userRole: 'user',
+      adminId: '369',
       clientCode: 'P0003',
       userName: 'sarah',
       fullName: 'Sarah Rahman',
