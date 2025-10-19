@@ -57,15 +57,16 @@ class HomeController extends GetxController {
       }
 
       // Fetch dashboard data from API
-      final response = await ApiService.instance.get(
+      final response = await ApiService.instance.get<DashboardResponse>(
         '${AppApi.dashboard}/$userId',
+        mapper: (data) => DashboardResponse.fromJson(data),
       );
 
       print('📊 Dashboard API Response: ${response.data}');
 
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.success && response.data != null) {
         // Parse dashboard response
-        dashboardData.value = DashboardResponse.fromJson(response.data);
+        dashboardData.value = response.data;
 
         // Update current user with API data
         final userDetails = dashboardData.value!.details;
@@ -549,7 +550,10 @@ class HomeController extends GetxController {
 
       // Make API call with timeout
       final response = await ApiService.instance
-          .get(trafficUrl)
+          .get<RealTimeTrafficData>(
+            trafficUrl,
+            mapper: (data) => RealTimeTrafficData.fromJson(data),
+          )
           .timeout(
             const Duration(seconds: 3),
             onTimeout: () {
@@ -560,12 +564,12 @@ class HomeController extends GetxController {
             },
           );
 
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.success && response.data != null) {
         // Reset error count on successful response
         trafficErrorCount.value = 0;
 
         // Parse traffic data
-        final trafficData = RealTimeTrafficData.fromJson(response.data);
+        final trafficData = response.data!;
 
         // Validate data sanity
         if (trafficData.uploadSpeed >= 0 && trafficData.downloadSpeed >= 0) {
@@ -599,7 +603,9 @@ class HomeController extends GetxController {
         trafficErrorCount.value++;
         if (trafficErrorCount.value <= 2) {
           // Only log first few errors to avoid spam
-          print('⚠️ Traffic API error: ${response.statusCode}');
+          print(
+            '⚠️ Traffic API error: ${response.status} - ${response.message}',
+          );
         }
       }
     } catch (e) {
