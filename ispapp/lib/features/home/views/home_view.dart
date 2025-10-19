@@ -189,6 +189,7 @@ class HomeView extends StatelessWidget {
         border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -199,9 +200,10 @@ class HomeView extends StatelessWidget {
             child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
@@ -210,6 +212,7 @@ class HomeView extends StatelessWidget {
                     color: Colors.white70,
                     fontWeight: FontWeight.w500,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -220,6 +223,7 @@ class HomeView extends StatelessWidget {
                     color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -432,35 +436,39 @@ class HomeView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildOverviewCard(
-                  icon: Icons.account_balance_wallet,
-                  title: 'Received',
-                  value: '৳${homeController.dynamicPaymentReceived}',
-                  color: const Color(0xFF4CAF50),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildOverviewCard(
-                  icon: Icons.payment,
-                  title: 'Pending',
-                  value: '৳${homeController.dynamicPaymentPending}',
-                  color: const Color(0xFFFF9800),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildOverviewCard(
-                  icon: Icons.support_agent,
-                  title: 'Tickets',
-                  value: homeController.dynamicSupportTickets,
-                  color: const Color(0xFF2196F3),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildOverviewCard(
+                      icon: Icons.account_balance_wallet,
+                      title: 'Received',
+                      value: '৳${homeController.dynamicPaymentReceived}',
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildOverviewCard(
+                      icon: Icons.payment,
+                      title: 'Pending',
+                      value: '৳${homeController.dynamicPaymentPending}',
+                      color: const Color(0xFFFF9800),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildOverviewCard(
+                      icon: Icons.support_agent,
+                      title: 'Tickets',
+                      value: homeController.dynamicSupportTickets,
+                      color: const Color(0xFF2196F3),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -531,37 +539,41 @@ class HomeView extends StatelessWidget {
       child: Column(
         children: [
           // Usage cards row
-          Row(
-            children: [
-              Expanded(
-                child: _buildUsageCard(
-                  icon: Icons.file_upload,
-                  title: 'Upload',
-                  value:
-                      '${homeController.currentPackage.value?.uploadUsed ?? 0.7} Gb',
-                  color: const Color(0xFF64B5F6),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildUsageCard(
-                  icon: Icons.access_time,
-                  title: 'Uptime',
-                  value: homeController.getUptimeValue(),
-                  color: const Color(0xFF4DB6AC),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildUsageCard(
-                  icon: Icons.file_download,
-                  title: 'Download',
-                  value:
-                      '${homeController.currentPackage.value?.downloadUsed ?? 16.7} Gb',
-                  color: const Color(0xFF64B5F6),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildUsageCard(
+                      icon: Icons.file_upload,
+                      title: 'Upload',
+                      value:
+                          '${homeController.currentPackage.value?.uploadUsed ?? 0.7} Gb',
+                      color: const Color(0xFF64B5F6),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildUsageCard(
+                      icon: Icons.access_time,
+                      title: 'Uptime',
+                      value: homeController.getUptimeValue(),
+                      color: const Color(0xFF4DB6AC),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildUsageCard(
+                      icon: Icons.file_download,
+                      title: 'Download',
+                      value:
+                          '${homeController.currentPackage.value?.downloadUsed ?? 16.7} Gb',
+                      color: const Color(0xFF64B5F6),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
           _buildRealTimeTrafficChart(homeController),
@@ -742,6 +754,7 @@ class HomeView extends StatelessWidget {
   // Traffic legend widget
   Widget _buildTrafficLegend({required Color color, required String label}) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 8,
@@ -757,6 +770,7 @@ class HomeView extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: color,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
