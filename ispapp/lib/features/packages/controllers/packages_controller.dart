@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/config/constants/api.dart';
+import '../../../core/config/constants/color.dart';
+import '../../../core/services/api_service.dart';
+import '../../../core/helpers/local_storage/storage_helper.dart';
 import '../models/package_model.dart';
 
 class PackagesController extends GetxController {
+  final ApiService _apiService = ApiService.instance;
+  static const String _keyUserId = 'user_id';
+
   final RxList<PackageModel> availablePackages = <PackageModel>[].obs;
   final Rx<PackageModel?> currentUserPackage = Rx<PackageModel?>(null);
   final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+  final RxString currentPackageId = ''.obs;
 
   @override
   void onInit() {
@@ -14,111 +23,93 @@ class PackagesController extends GetxController {
   }
 
   Future<void> loadPackages() async {
-    isLoading.value = true;
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
 
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
+      // Get user ID from storage
+      final userId = AppStorageHelper.get<String>(_keyUserId);
+      if (userId == null || userId.isEmpty) {
+        errorMessage.value = 'User ID not found. Please login again.';
+        isLoading.value = false;
+        return;
+      }
 
-    // Dummy package data
-    final packages = [
-      PackageModel(
-        id: 'pkg_1',
-        name: '20MBPS',
-        speed: '20 Mbps',
-        price: 1500.0,
-        duration: '30 Days',
-        description:
-            'Perfect for home users. Stream, browse, and work from home with reliable high-speed internet.',
-        isActive: true,
-        validUntil: DateTime(2099, 12, 31),
-        packageType: 'Residential',
-        features: [
-          'Unlimited Data',
-          '24/7 Support',
-          'Free Installation',
-          'WiFi Router',
-        ],
-        dataLimit: 1000.0,
-        dataUnit: 'GB',
-      ),
-      PackageModel(
-        id: 'pkg_2',
-        name: '50MBPS',
-        speed: '50 Mbps',
-        price: 3000.0,
-        duration: '30 Days',
-        description:
-            'Ideal for power users and small businesses. Ultra-fast internet for heavy usage.',
-        isActive: true,
-        validUntil: DateTime(2099, 12, 31),
-        packageType: 'Business',
-        features: [
-          'Unlimited Data',
-          'Priority Support',
-          'Static IP',
-          'Advanced Router',
-          'Backup Connection',
-        ],
-        dataLimit: 2000.0,
-        dataUnit: 'GB',
-      ),
-      PackageModel(
-        id: 'pkg_3',
-        name: '100MBPS',
-        speed: '100 Mbps',
-        price: 5000.0,
-        duration: '30 Days',
-        description:
-            'Enterprise-grade solution with maximum speed and reliability for businesses.',
-        isActive: true,
-        validUntil: DateTime(2099, 12, 31),
-        packageType: 'Enterprise',
-        features: [
-          'Unlimited Data',
-          'Dedicated Support',
-          'Multiple Static IPs',
-          'Enterprise Router',
-          '99.9% Uptime SLA',
-        ],
-        dataLimit: 5000.0,
-        dataUnit: 'GB',
-      ),
-      PackageModel(
-        id: 'pkg_4',
-        name: '10MBPS',
-        speed: '10 Mbps',
-        price: 800.0,
-        duration: '30 Days',
-        description: 'Budget-friendly option for basic internet needs.',
-        isActive: true,
-        validUntil: DateTime(2099, 12, 31),
-        packageType: 'Basic',
-        features: ['500GB Data', 'Standard Support', 'Basic Router'],
-        dataLimit: 500.0,
-        dataUnit: 'GB',
-      ),
-    ];
+      print('📦 Fetching packages for user: $userId');
 
-    // Sort packages by price for better display
-    packages.sort((a, b) => a.price.compareTo(b.price));
+      // Fetch packages from API
+      final response = await _apiService.get<Map<String, dynamic>>(
+        '${AppApi.packages}$userId',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    availablePackages.assignAll(packages);
+      print('📦 API Response - Success: ${response.success}');
+      print('📦 API Response - Data: ${response.data}');
 
-    // Set current user package (assuming they have the 20MBPS package)
-    currentUserPackage.value = packages.firstWhere(
-      (pkg) => pkg.name == '20MBPS',
-      orElse: () => packages.first,
-    );
+      if (response.success && response.data != null) {
+        final packagesResponse = PackagesResponse.fromJson(response.data!);
 
-    isLoading.value = false;
+        // Update current package ID
+        currentPackageId.value = packagesResponse.currentPackageId ?? '';
+
+        // Filter only visible and active packages
+        final visiblePackages =
+            packagesResponse.packages
+                .where((pkg) => pkg.isVisible && pkg.isActive)
+                .toList();
+
+        // Sort packages by bandwidth
+        visiblePackages.sort(
+          (a, b) => a.bandwidthValue.compareTo(b.bandwidthValue),
+        );
+
+        availablePackages.assignAll(visiblePackages);
+
+        // Set current user package
+        if (currentPackageId.value.isNotEmpty) {
+          try {
+            currentUserPackage.value = visiblePackages.firstWhere(
+              (pkg) => pkg.id == currentPackageId.value,
+            );
+          } catch (e) {
+            currentUserPackage.value =
+                visiblePackages.isNotEmpty ? visiblePackages.first : null;
+          }
+        }
+
+        print('📦 Loaded ${availablePackages.length} packages');
+        print('📦 Current package ID: ${currentPackageId.value}');
+        print(
+          '📦 Current package name: ${currentUserPackage.value?.packageName ?? "None"}',
+        );
+      } else {
+        errorMessage.value = response.message;
+        print('❌ Error: ${errorMessage.value}');
+      }
+    } catch (e) {
+      errorMessage.value = 'Error loading packages: ${e.toString()}';
+      print('❌ Exception: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void requestPackageUpgrade(PackageModel package) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Package Upgrade Request'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.upgrade, color: AppColors.primary, size: 28),
+            const SizedBox(width: 8),
+            const Text('Package Upgrade'),
+          ],
+        ),
         content: Text(
-          'Do you want to upgrade to ${package.name} package for ৳${package.price.toInt()}/month?',
+          'Do you want to upgrade to ${package.packageName} package (${package.bandwidth}MB) for ৳${package.priceValue.toInt()}/${package.pricingType}?',
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
@@ -127,6 +118,10 @@ class PackagesController extends GetxController {
               Get.back();
               _processUpgradeRequest(package);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Request Upgrade'),
           ),
         ],
@@ -137,29 +132,29 @@ class PackagesController extends GetxController {
   void _processUpgradeRequest(PackageModel package) {
     Get.snackbar(
       'Request Submitted',
-      'Your upgrade request for ${package.name} has been submitted. Our team will contact you soon.',
+      'Your upgrade request for ${package.packageName} has been submitted. Our team will contact you soon.',
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 4),
+      backgroundColor: AppColors.primary.withOpacity(0.9),
+      colorText: Colors.white,
     );
   }
 
   String getPackageRecommendation(PackageModel package) {
-    switch (package.packageType.toLowerCase()) {
-      case 'basic':
-        return 'Good for light browsing and basic needs';
-      case 'residential':
-        return 'Recommended for families and home users';
-      case 'business':
-        return 'Perfect for small businesses and power users';
-      case 'enterprise':
-        return 'Best for large businesses and enterprises';
-      default:
-        return 'High-quality internet service';
+    final bandwidth = package.bandwidthValue;
+    if (bandwidth <= 10) {
+      return 'Good for light browsing and basic needs';
+    } else if (bandwidth <= 20) {
+      return 'Recommended for families and home users';
+    } else if (bandwidth <= 50) {
+      return 'Perfect for streaming and moderate usage';
+    } else {
+      return 'Best for heavy usage and businesses';
     }
   }
 
   bool isCurrentPackage(PackageModel package) {
-    return currentUserPackage.value?.id == package.id;
+    return currentPackageId.value == package.id;
   }
 
   void showPackageDetails(PackageModel package) {
@@ -168,14 +163,16 @@ class PackagesController extends GetxController {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.wifi, color: const Color(0xFF4A90E2), size: 28),
+            Icon(Icons.wifi, color: AppColors.primary, size: 28),
             const SizedBox(width: 8),
-            Text(
-              package.name,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4A90E2),
+            Expanded(
+              child: Text(
+                package.packageName,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ],
@@ -185,63 +182,33 @@ class PackagesController extends GetxController {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Speed: ${package.speed}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Price: ৳${package.price.toInt()}/${package.duration}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              _buildDetailRow(
+                'Speed',
+                '${package.bandwidth} Mbps',
+                Icons.speed,
               ),
               const SizedBox(height: 12),
-              Text(
-                'Description:',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+              _buildDetailRow(
+                'Price',
+                '৳${package.priceValue.toInt()}/${package.pricingType}',
+                Icons.attach_money,
               ),
-              const SizedBox(height: 4),
-              Text(package.description, style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 12),
+              _buildDetailRow('Status', package.status, Icons.info_outline),
+              const SizedBox(height: 16),
               Text(
                 'Features:',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 8),
-              ...package.features
-                  .map<Widget>(
-                    (feature) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              feature,
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
+              _buildFeatureItem('High-speed internet connection'),
+              _buildFeatureItem('24/7 customer support'),
+              _buildFeatureItem('Reliable and stable connection'),
+              _buildFeatureItem('Easy billing and payment options'),
             ],
           ),
         ),
@@ -254,7 +221,7 @@ class PackagesController extends GetxController {
                 requestPackageUpgrade(package);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A90E2),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Upgrade'),
@@ -264,18 +231,46 @@ class PackagesController extends GetxController {
     );
   }
 
-  String getPackageIcon(String packageType) {
-    switch (packageType.toLowerCase()) {
-      case 'basic':
-        return '🏠';
-      case 'residential':
-        return '🏡';
-      case 'business':
-        return '🏢';
-      case 'enterprise':
-        return '🏭';
-      default:
-        return '📶';
-    }
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+      ],
+    );
+  }
+
+  Widget _buildFeatureItem(String feature) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.green, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(feature, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
+    );
+  }
+
+  Color getPackageColor(PackageModel package) {
+    final bandwidth = package.bandwidthValue;
+    if (bandwidth <= 10) return Colors.grey;
+    if (bandwidth <= 20) return Colors.blue;
+    if (bandwidth <= 50) return Colors.orange;
+    return Colors.purple;
+  }
+
+  IconData getPackageIcon(PackageModel package) {
+    final bandwidth = package.bandwidthValue;
+    if (bandwidth <= 10) return Icons.signal_cellular_alt_1_bar;
+    if (bandwidth <= 20) return Icons.signal_cellular_alt_2_bar;
+    if (bandwidth <= 50) return Icons.signal_cellular_alt;
+    return Icons.signal_cellular_4_bar;
   }
 }

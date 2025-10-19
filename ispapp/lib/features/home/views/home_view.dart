@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/views/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/views/widgets/realTimeChartPainter.dart';
 import '../controllers/home_controller.dart';
@@ -116,7 +117,7 @@ class HomeView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Status : ${homeController.currentPackage.value?.status ?? 'Connected'}',
+                        'Status : ${homeController.connectionStatus}',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white70,
@@ -147,14 +148,17 @@ class HomeView extends StatelessWidget {
             // Package Info Cards
             Row(
               children: [
-                Expanded(
-                  child: _buildInfoCard(
-                    icon: Icons.router,
-                    title: 'Package',
-                    value:
-                        homeController.currentPackage.value?.package.name ??
-                        '20MBPS',
-                    subtitle: '',
+                GestureDetector(
+                  onTap: () {
+                    Get.toNamed(AppRoutes.packages);
+                  },
+                  child: Expanded(
+                    child: _buildInfoCard(
+                      icon: Icons.router,
+                      title: 'Packages',
+                      value: homeController.packageName,
+                      subtitle: '',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -548,7 +552,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.file_upload,
                       title: 'Upload',
                       value:
-                          '${homeController.currentPackage.value?.uploadUsed ?? 0.7} Gb',
+                          '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
                       color: const Color(0xFF64B5F6),
                     ),
                   ),
@@ -567,7 +571,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.file_download,
                       title: 'Download',
                       value:
-                          '${homeController.currentPackage.value?.downloadUsed ?? 16.7} Gb',
+                          '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
                       color: const Color(0xFF64B5F6),
                     ),
                   ),
