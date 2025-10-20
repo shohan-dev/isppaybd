@@ -39,65 +39,65 @@ class DummyDataService {
   ];
 
   // Dummy Packages
-  static List<PackageModel> dummyPackages = [
-    PackageModel(
-      id: 'pkg_1',
-      name: '20MBPS',
-      speed: '20 Mbps',
-      price: 1500.0,
-      duration: '30 Days',
-      description: 'High-speed internet for home use',
-      isActive: true,
-      validUntil: DateTime(2099, 12, 31),
-      packageType: 'Residential',
-      features: ['Unlimited Data', '24/7 Support', 'Free Installation'],
-      dataLimit: 1000.0,
-      dataUnit: 'GB',
-    ),
-    PackageModel(
-      id: 'pkg_2',
-      name: '50MBPS',
-      speed: '50 Mbps',
-      price: 3000.0,
-      duration: '30 Days',
-      description: 'Ultra-fast internet for power users',
-      isActive: true,
-      validUntil: DateTime(2099, 12, 31),
-      packageType: 'Business',
-      features: ['Unlimited Data', 'Priority Support', 'Static IP'],
-      dataLimit: 2000.0,
-      dataUnit: 'GB',
-    ),
-    PackageModel(
-      id: 'pkg_3',
-      name: '100MBPS',
-      speed: '100 Mbps',
-      price: 5000.0,
-      duration: '30 Days',
-      description: 'Enterprise-grade internet solution',
-      isActive: true,
-      validUntil: DateTime(2099, 12, 31),
-      packageType: 'Enterprise',
-      features: ['Unlimited Data', 'Dedicated Support', 'Multiple IPs'],
-      dataLimit: 5000.0,
-      dataUnit: 'GB',
-    ),
-  ];
+  // static List<PackageModel> dummyPackages = [
+  //   PackageModel(
+  //     id: 'pkg_1',
+  //     name: '20MBPS',
+  //     speed: '20 Mbps',
+  //     price: 1500.0,
+  //     duration: '30 Days',
+  //     description: 'High-speed internet for home use',
+  //     isActive: true,
+  //     validUntil: DateTime(2099, 12, 31),
+  //     packageType: 'Residential',
+  //     features: ['Unlimited Data', '24/7 Support', 'Free Installation'],
+  //     dataLimit: 1000.0,
+  //     dataUnit: 'GB',
+  //   ),
+  //   PackageModel(
+  //     id: 'pkg_2',
+  //     name: '50MBPS',
+  //     speed: '50 Mbps',
+  //     price: 3000.0,
+  //     duration: '30 Days',
+  //     description: 'Ultra-fast internet for power users',
+  //     isActive: true,
+  //     validUntil: DateTime(2099, 12, 31),
+  //     packageType: 'Business',
+  //     features: ['Unlimited Data', 'Priority Support', 'Static IP'],
+  //     dataLimit: 2000.0,
+  //     dataUnit: 'GB',
+  //   ),
+  //   PackageModel(
+  //     id: 'pkg_3',
+  //     name: '100MBPS',
+  //     speed: '100 Mbps',
+  //     price: 5000.0,
+  //     duration: '30 Days',
+  //     description: 'Enterprise-grade internet solution',
+  //     isActive: true,
+  //     validUntil: DateTime(2099, 12, 31),
+  //     packageType: 'Enterprise',
+  //     features: ['Unlimited Data', 'Dedicated Support', 'Multiple IPs'],
+  //     dataLimit: 5000.0,
+  //     dataUnit: 'GB',
+  //   ),
+  // ];
 
-  // Dummy User Packages
-  static List<UserPackageModel> dummyUserPackages = [
-    UserPackageModel(
-      id: 'up_1',
-      userId: 'user_1',
-      package: dummyPackages[0],
-      startDate: DateTime(2024, 10, 1),
-      endDate: DateTime(2024, 12, 31),
-      uploadUsed: 0.7,
-      downloadUsed: 16.7,
-      status: 'Connected',
-      totalUptime: 6.5, // 6 hours 29 minutes
-    ),
-  ];
+  // // Dummy User Packages
+  // static List<UserPackageModel> dummyUserPackages = [
+  //   UserPackageModel(
+  //     id: 'up_1',
+  //     userId: 'user_1',
+  //     package: dummyPackages[0],
+  //     startDate: DateTime(2024, 10, 1),
+  //     endDate: DateTime(2024, 12, 31),
+  //     uploadUsed: 0.7,
+  //     downloadUsed: 16.7,
+  //     status: 'Connected',
+  //     totalUptime: 6.5, // 6 hours 29 minutes
+  //   ),
+  // ];
 
   // Dummy Payments
   static List<PaymentModel> dummyPayments = [
@@ -241,13 +241,13 @@ class DummyDataService {
   }
 
   // Get user package
-  static UserPackageModel? getUserPackage(String userId) {
-    try {
-      return dummyUserPackages.firstWhere((up) => up.userId == userId);
-    } catch (e) {
-      return null;
-    }
-  }
+  // static UserPackageModel? getUserPackage(String userId) {
+  //   try {
+  //     return dummyUserPackages.firstWhere((up) => up.userId == userId);
+  //   } catch (e) {
+  //     return null;
+  //   }
+  // }
 
   // Get user payments
   static List<PaymentModel> getUserPayments(String userId) {
@@ -267,9 +267,9 @@ class DummyDataService {
   }
 
   // Get all packages
-  static List<PackageModel> getAllPackages() {
-    return dummyPackages;
-  }
+  // static List<PackageModel> getAllPackages() {
+  //   return dummyPackages;
+  // }
 
   // Get all news
   static List<NewsModel> getAllNews() {

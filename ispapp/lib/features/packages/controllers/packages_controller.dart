@@ -142,6 +142,7 @@ class PackagesController extends GetxController {
 
   String getPackageRecommendation(PackageModel package) {
     final bandwidth = package.bandwidthValue;
+    print('📦 Bandwidth: $bandwidth Mbps');
     if (bandwidth <= 10) {
       return 'Good for light browsing and basic needs';
     } else if (bandwidth <= 20) {
@@ -260,17 +261,21 @@ class PackagesController extends GetxController {
 
   Color getPackageColor(PackageModel package) {
     final bandwidth = package.bandwidthValue;
-    if (bandwidth <= 10) return Colors.grey;
-    if (bandwidth <= 20) return Colors.blue;
-    if (bandwidth <= 50) return Colors.orange;
-    return Colors.purple;
+    return AppColors.getBandwidthColor(bandwidth);
   }
 
   IconData getPackageIcon(PackageModel package) {
     final bandwidth = package.bandwidthValue;
-    if (bandwidth <= 10) return Icons.signal_cellular_alt_1_bar;
-    if (bandwidth <= 20) return Icons.signal_cellular_alt_2_bar;
-    if (bandwidth <= 50) return Icons.signal_cellular_alt;
-    return Icons.signal_cellular_4_bar;
+    if (bandwidth == 0 || bandwidth <= 10) {
+      return Icons.wifi_2_bar_rounded;
+    } else if (bandwidth <= 20) {
+      return Icons.wifi;
+    } else if (bandwidth <= 50) {
+      return Icons.speed;
+    } else if (bandwidth <= 100) {
+      return Icons.rocket_launch;
+    }
+
+    return Icons.bolt;
   }
 }

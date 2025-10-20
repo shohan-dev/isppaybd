@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/views/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/views/widgets/realTimeChartPainter.dart';
@@ -15,7 +16,7 @@ class HomeView extends StatelessWidget {
     final AuthController authController = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.backgroundGrey,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: homeController.refreshDashboardData,
@@ -52,7 +53,7 @@ class HomeView extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF282a35), Color(0xFF357ABD)],
+          colors: AppColors.headerGradient,
         ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
@@ -71,7 +72,7 @@ class HomeView extends StatelessWidget {
                   height: 60,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: AppColors.borderWhite, width: 2),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(28),
@@ -87,11 +88,11 @@ class HomeView extends StatelessWidget {
                               fit: BoxFit.cover,
                             )
                             : Container(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.overlay20,
                               child: const Icon(
                                 Icons.person,
-                                size: 35,
-                                color: Colors.white,
+                                size: 30,
+                                color: AppColors.textWhite,
                               ),
                             ),
                   ),
@@ -104,23 +105,23 @@ class HomeView extends StatelessWidget {
                       Text(
                         homeController.userName,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.textWhite,
                         ),
                       ),
                       Text(
                         'Client User ID : ${homeController.userId}',
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.white70,
+                          color: AppColors.textWhite70,
                         ),
                       ),
                       Text(
                         'Status : ${homeController.connectionStatus}',
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.white70,
+                          color: AppColors.textWhite70,
                         ),
                       ),
                     ],
@@ -129,7 +130,7 @@ class HomeView extends StatelessWidget {
                 IconButton(
                   icon: const Icon(
                     Icons.notifications,
-                    color: Colors.white,
+                    color: AppColors.textWhite,
                     size: 28,
                   ),
                   onPressed:
@@ -139,7 +140,11 @@ class HomeView extends StatelessWidget {
                       ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white, size: 28),
+                  icon: const Icon(
+                    Icons.logout,
+                    color: AppColors.textWhite,
+                    size: 28,
+                  ),
                   onPressed: () => authController.logout(),
                 ),
               ],
@@ -188,9 +193,9 @@ class HomeView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: AppColors.overlay20,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppColors.borderLight, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -198,10 +203,10 @@ class HomeView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.overlay20,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: AppColors.textWhite, size: 20),
           ),
           const SizedBox(width: 12),
           Flexible(
@@ -213,7 +218,7 @@ class HomeView extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.white70,
+                    color: AppColors.textWhite70,
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -224,7 +229,7 @@ class HomeView extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.textWhite,
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -251,33 +256,34 @@ class HomeView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: AppColors.errorBackground,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.errorBorder, width: 1),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.warning_amber_rounded,
-                  color: Colors.orange[600],
+                  color: AppColors.errorIcon,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     homeController.errorMessage.value,
-                    style: TextStyle(
-                      color: Colors.orange[700],
+                    style: const TextStyle(
+                      color: AppColors.errorText,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: Colors.orange[600], size: 18),
+                  icon: const Icon(
+                    Icons.close,
+                    color: AppColors.errorIcon,
+                    size: 18,
+                  ),
                   onPressed: () => homeController.errorMessage.value = '',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -315,31 +321,28 @@ class HomeView extends StatelessWidget {
                 value:
                     '৳${((double.tryParse(homeController.dynamicPaymentReceived.toString()) ?? 0) + (double.tryParse(homeController.dynamicPaymentPending.toString()) ?? 0)).toStringAsFixed(2)}',
                 icon: Icons.account_balance_wallet,
-                gradient: const [
-                  Color.fromARGB(255, 45, 77, 219),
-                  Color(0xFF6CB8F6),
-                ],
+                gradient: AppColors.totalPaymentGradient,
                 onTap: () => Get.toNamed('/payment'),
               ),
               _buildMenuCard(
                 title: 'Payment Successful (৳)',
                 value: '৳${homeController.dynamicPaymentReceived}',
                 icon: Icons.check_circle,
-                gradient: const [Color(0xFF16A34A), Color(0xFF34D399)],
+                gradient: AppColors.successGradient,
                 onTap: () => Get.toNamed('/payment'),
               ),
               _buildMenuCard(
                 title: 'Payment Pending (৳)',
                 value: '৳${homeController.dynamicPaymentPending}',
                 icon: Icons.pending_actions,
-                gradient: const [Color(0xFFF59E0B), Color(0xFFFCD34D)],
+                gradient: AppColors.pendingGradient,
                 onTap: () => Get.toNamed('/payment'),
               ),
               _buildMenuCard(
                 title: 'Total Support Ticket',
-                value: '${homeController.dynamicSupportTickets}',
+                value: homeController.dynamicSupportTickets,
                 icon: Icons.support_agent,
-                gradient: const [Color(0xFF7C3AED), Color(0xFF9F7AEA)],
+                gradient: AppColors.supportGradient,
                 onTap: () => Get.toNamed('/support'),
               ),
             ],
@@ -370,7 +373,7 @@ class HomeView extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppColors.shadowLight,
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -387,31 +390,34 @@ class HomeView extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textWhite,
                     ),
                   ),
                 ),
-                Icon(icon, color: Colors.white70, size: 20),
+                Icon(icon, color: AppColors.textWhite70, size: 20),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(fontSize: 12, color: Colors.white70),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textWhite70,
+              ),
             ),
             const Spacer(),
             Container(
               height: 30,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: AppColors.overlay12,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withOpacity(0.18)),
+                border: Border.all(color: AppColors.overlay18),
               ),
               child: const Center(
                 child: Text(
                   'View Details',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.textWhite70,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -436,7 +442,7 @@ class HomeView extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF424242),
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -449,7 +455,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.account_balance_wallet,
                       title: 'Received',
                       value: '৳${homeController.dynamicPaymentReceived}',
-                      color: const Color(0xFF4CAF50),
+                      color: AppColors.receivedColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -458,7 +464,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.payment,
                       title: 'Pending',
                       value: '৳${homeController.dynamicPaymentPending}',
-                      color: const Color(0xFFFF9800),
+                      color: AppColors.pendingColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -467,7 +473,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.support_agent,
                       title: 'Tickets',
                       value: homeController.dynamicSupportTickets,
-                      color: const Color(0xFF2196F3),
+                      color: AppColors.ticketColor,
                     ),
                   ),
                 ],
@@ -489,11 +495,11 @@ class HomeView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: AppColors.shadowLight,
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -517,7 +523,7 @@ class HomeView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF424242),
+              color: AppColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -527,7 +533,7 @@ class HomeView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF757575),
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -553,7 +559,7 @@ class HomeView extends StatelessWidget {
                       title: 'Upload',
                       value:
                           '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
-                      color: const Color(0xFF64B5F6),
+                      color: AppColors.uploadColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -562,7 +568,7 @@ class HomeView extends StatelessWidget {
                       icon: Icons.access_time,
                       title: 'Uptime',
                       value: homeController.getUptimeValue(),
-                      color: const Color(0xFF4DB6AC),
+                      color: AppColors.uptimeColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -572,7 +578,7 @@ class HomeView extends StatelessWidget {
                       title: 'Download',
                       value:
                           '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
-                      color: const Color(0xFF64B5F6),
+                      color: AppColors.downloadColor,
                     ),
                   ),
                 ],
@@ -600,11 +606,11 @@ class HomeView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: AppColors.shadowLight,
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -628,7 +634,7 @@ class HomeView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF424242),
+              color: AppColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -638,7 +644,7 @@ class HomeView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF757575),
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -653,11 +659,11 @@ class HomeView extends StatelessWidget {
       width: double.infinity,
       height: 280,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: AppColors.shadowLight,
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -676,7 +682,7 @@ class HomeView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF424242),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
@@ -738,12 +744,12 @@ class HomeView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildTrafficLegend(
-                  color: const Color(0xFF64B5F6),
+                  color: AppColors.trafficDownload,
                   label:
                       'Download: ${homeController.currentDownloadSpeed} ${homeController.trafficUnit}',
                 ),
                 _buildTrafficLegend(
-                  color: const Color(0xFF81C784),
+                  color: AppColors.trafficUpload,
                   label:
                       'Upload: ${homeController.currentUploadSpeed} ${homeController.trafficUnit}',
                 ),
@@ -787,11 +793,11 @@ class HomeView extends StatelessWidget {
       width: double.infinity,
       height: 300,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: AppColors.shadowLight,
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -810,7 +816,7 @@ class HomeView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF424242),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
@@ -820,14 +826,14 @@ class HomeView extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: AppColors.badgeBackground,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Last Updated',
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.blue[700],
+                      color: AppColors.badgeText,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -850,11 +856,11 @@ class HomeView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildLegendItem(
-                  color: const Color(0xFF64B5F6),
+                  color: AppColors.paymentSuccessful,
                   label: 'Successful',
                 ),
                 _buildLegendItem(
-                  color: const Color(0xFF81C784),
+                  color: AppColors.paymentPending,
                   label: 'Pending',
                 ),
               ],
@@ -883,7 +889,7 @@ class HomeView extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 12,
-            color: Color(0xFF757575),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -896,11 +902,11 @@ class HomeView extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: AppColors.shadowLight,
             spreadRadius: 1,
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -917,7 +923,7 @@ class HomeView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF424242),
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -951,7 +957,7 @@ class HomeView extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF424242),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -959,7 +965,7 @@ class HomeView extends StatelessWidget {
                         'Latest updates coming soon...',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF757575),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       SizedBox(height: 2),
@@ -967,7 +973,7 @@ class HomeView extends StatelessWidget {
                         '2025-10-12T17:20:35+0000',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Color(0xFFFF9800),
+                          color: AppColors.warning,
                         ),
                       ),
                     ],

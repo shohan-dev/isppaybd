@@ -47,7 +47,18 @@ class PackageModel {
 
   // Helper getters
   double get priceValue => double.tryParse(price) ?? 0.0;
-  int get bandwidthValue => int.tryParse(bandwidth) ?? 0;
+
+  int get bandwidthValue {
+    // Extract numeric value from bandwidth strings like "10Mbps", "20Mbps", etc.
+    if (bandwidth.isEmpty) return 0;
+
+    // Remove all non-digit characters (keeps only numbers)
+    final numericOnly = bandwidth.replaceAll(RegExp(r'[^0-9]'), '');
+    if (numericOnly.isEmpty) return 0;
+
+    return int.tryParse(numericOnly) ?? 0;
+  }
+
   bool get isActive => status.toLowerCase() == 'active';
   bool get isVisible => visibility.toLowerCase() == 'active';
 }
