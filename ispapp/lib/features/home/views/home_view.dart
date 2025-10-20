@@ -819,25 +819,25 @@ class HomeView extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.badgeBackground,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Last Updated',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.badgeText,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                // const Spacer(),
+                // Container(
+                //   padding: const EdgeInsets.symmetric(
+                //     horizontal: 8,
+                //     vertical: 4,
+                //   ),
+                //   decoration: BoxDecoration(
+                //     color: AppColors.badgeBackground,
+                //     borderRadius: BorderRadius.circular(8),
+                //   ),
+                //   child: const Text(
+                //     'Last Updated',
+                //     style: TextStyle(
+                //       fontSize: 10,
+                //       color: AppColors.badgeText,
+                //       fontWeight: FontWeight.w500,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 16),
