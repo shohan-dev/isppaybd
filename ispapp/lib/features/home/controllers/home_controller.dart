@@ -516,7 +516,6 @@ class HomeController extends GetxController {
   bool get isTrafficHealthy => trafficErrorCount.value < maxErrorCount;
   String get trafficStatusText {
     if (!isRealTimeActive.value) return 'Offline';
-    if (isTrafficLoading.value) return 'Loading...';
     if (!isTrafficHealthy) return 'Connection Issues';
     if (!hasTrafficData) return 'Initializing...';
     return 'Live';
@@ -524,7 +523,6 @@ class HomeController extends GetxController {
 
   Color get trafficStatusColor {
     if (!isRealTimeActive.value) return Colors.grey;
-    if (isTrafficLoading.value) return Colors.orange;
     if (!isTrafficHealthy) return Colors.red;
     if (!hasTrafficData) return Colors.blue;
     return Colors.green;
