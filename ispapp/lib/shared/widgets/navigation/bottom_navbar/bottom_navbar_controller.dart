@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:ispapp/features/payment/views/payment_view.dart';
 import '../../../../features/home/views/home_view.dart';
 
 class BottomNavBarController extends GetxController {
@@ -11,7 +12,7 @@ class BottomNavBarController extends GetxController {
   void onInit() {
     super.onInit();
     // Initialize pages after all dependencies are loaded
-    pages = [const HomeView(), _buildPingPage(), _buildPaymentHistoryPage()];
+    pages = [const HomeView(), _buildPingPage(), PaymentView()];
   }
 
   Widget _buildPingPage() {

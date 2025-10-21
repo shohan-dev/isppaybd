@@ -1,5 +1,4 @@
 import '../../features/auth/models/user_model.dart';
-import '../../features/packages/models/package_model.dart';
 import '../../features/payment/models/payment_model.dart';
 import '../../features/support/models/support_model.dart';
 import '../../features/news/models/news_model.dart';
@@ -104,28 +103,36 @@ class DummyDataService {
     PaymentModel(
       id: 'pay_1',
       userId: 'user_1',
-      packageId: 'pkg_1',
+      adminId: '369',
+      paidBy: '369',
+      userType: 'user',
+      invoice: 'INV-590721',
       amount: 1500.0,
-      paymentMethod: 'bKash',
-      transactionId: 'BKA123456789',
-      status: 'Completed',
-      paymentDate: DateTime(2024, 10, 1),
-      dueDate: DateTime(2024, 10, 31),
-      description: '20MBPS Package - October 2024',
-      invoiceNumber: 'INV-2024-001',
+      payAmount: 1500.0,
+      month: 'October',
+      createdAt: DateTime(2024, 10, 1),
+      paidAt: DateTime(2024, 10, 1),
+      paidTo: '369',
+      paidVia: 'bKash',
+      methodTrx: 'BKA123456789',
+      status: 'successful',
     ),
     PaymentModel(
       id: 'pay_2',
       userId: 'user_1',
-      packageId: 'pkg_1',
+      adminId: '369',
+      paidBy: '369',
+      userType: 'user',
+      invoice: 'INV-590722',
       amount: 1500.0,
-      paymentMethod: 'Nagad',
-      transactionId: 'NAG987654321',
-      status: 'Completed',
-      paymentDate: DateTime(2024, 9, 1),
-      dueDate: DateTime(2024, 9, 30),
-      description: '20MBPS Package - September 2024',
-      invoiceNumber: 'INV-2024-002',
+      payAmount: 1500.0,
+      month: 'September',
+      createdAt: DateTime(2024, 9, 1),
+      paidAt: DateTime(2024, 9, 1),
+      paidTo: '369',
+      paidVia: 'Nagad',
+      methodTrx: 'NAG987654321',
+      status: 'successful',
     ),
   ];
 
