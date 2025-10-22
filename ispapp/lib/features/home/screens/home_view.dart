@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
-import 'package:ispapp/features/home/views/widgets/paymentChartPainter.dart';
-import 'package:ispapp/features/home/views/widgets/realTimeChartPainter.dart';
+import 'package:ispapp/features/home/screens/widgets/paymentChartPainter.dart';
+import 'package:ispapp/features/home/screens/widgets/realTimeChartPainter.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 
@@ -153,11 +153,11 @@ class HomeView extends StatelessWidget {
             // Package Info Cards
             Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Get.toNamed(AppRoutes.packages);
-                  },
-                  child: Expanded(
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.toNamed(AppRoutes.packages);
+                    },
                     child: _buildInfoCard(
                       icon: Icons.router,
                       title: 'Packages',
@@ -168,11 +168,16 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildInfoCard(
-                    icon: Icons.schedule,
-                    title: 'Expire Date',
-                    value: homeController.getPackageExpireDate(),
-                    subtitle: '',
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.toNamed(AppRoutes.subscription);
+                    },
+                    child: _buildInfoCard(
+                      icon: Icons.schedule,
+                      title: 'Expire Date',
+                      value: homeController.getPackageExpireDate(),
+                      subtitle: '',
+                    ),
                   ),
                 ),
               ],

@@ -14,6 +14,9 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
 
+  // subscription routes
+  static const String subscription = '/subscription';
+
   // Package routes
   static const String packageDetails = '/package-details';
   static const String upgradePackage = '/upgrade-package';

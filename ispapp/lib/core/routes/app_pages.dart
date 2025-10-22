@@ -1,11 +1,12 @@
 import 'package:get/get.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/core/bindings/app_bindings.dart';
-import 'package:ispapp/features/auth/views/login_view.dart';
-import 'package:ispapp/features/packages/views/packages_view.dart';
-import 'package:ispapp/features/news/views/news_view.dart';
-import 'package:ispapp/features/payment/views/payment_view.dart';
-import 'package:ispapp/features/support/views/support_view.dart';
+import 'package:ispapp/features/auth/screens/login_view.dart';
+import 'package:ispapp/features/packages/screens/packages_view.dart';
+import 'package:ispapp/features/news/screens/news_view.dart';
+import 'package:ispapp/features/payment/screens/payment_view.dart';
+import 'package:ispapp/features/subscription/screen/subscription_screen.dart';
+import 'package:ispapp/features/support/screens/support_view.dart';
 import 'package:ispapp/shared/widgets/navigation/bottom_navbar/bottom_navbar.dart';
 import 'package:ispapp/shared/widgets/navigation/splash/splash_screen.dart';
 
@@ -33,6 +34,13 @@ class AppPages {
       name: AppRoutes.dashboard,
       page: () => BottomNavBar(),
       bindings: [HomeBinding(), BottomNavBinding()],
+    ),
+
+    // Subscription Route
+    GetPage(
+      name: AppRoutes.subscription,
+      page: () => const SubscriptionScreen(),
+      // binding: SubscriptionBinding(),
     ),
 
     // Feature Routes
