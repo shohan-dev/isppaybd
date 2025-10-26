@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/features/payment/screens/payment_view.dart';
 import '../../../../features/home/screens/home_view.dart';
 
@@ -31,7 +32,7 @@ class BottomNavBarController extends GetxController {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                    colors: AppColors.headerGradient,
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -100,7 +101,7 @@ class BottomNavBarController extends GetxController {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A90E2),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
