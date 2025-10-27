@@ -57,6 +57,7 @@ class HomeController extends GetxController {
       // Fetch dashboard data from API
       final response = await ApiService.instance.get<DashboardResponse>(
         '${AppApi.dashboard}/$userId',
+        // '${AppApi.dashboard}/10854',
         mapper: (data) => DashboardResponse.fromJson(data),
       );
 
@@ -66,12 +67,6 @@ class HomeController extends GetxController {
         // Parse dashboard response
         dashboardData.value = response.data;
 
-        // Debug payment statistics
-        print('💰 Payment Statistics:');
-        print('   Months: ${response.data!.statistics.months}');
-        print('   Successful: ${response.data!.statistics.successful}');
-        print('   Pending: ${response.data!.statistics.pending}');
-        print('   Failed: ${response.data!.statistics.failed}');
 
         // Update current user with API data
         final userDetails = dashboardData.value!.details;

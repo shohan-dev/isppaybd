@@ -1,10 +1,16 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
+import '../../../core/config/constants/api.dart';
+import '../../../core/helpers/network_helper.dart';
+import '../../../core/helpers/local_storage/storage_helper.dart';
 import '../models/support_model.dart';
 
 class SupportController extends GetxController {
   final RxList<SupportTicketModel> tickets = <SupportTicketModel>[].obs;
   final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+  final RxString selectedFilter = 'all'.obs;
 
   @override
   void onInit() {
@@ -14,50 +20,110 @@ class SupportController extends GetxController {
 
   Future<void> loadTickets() async {
     isLoading.value = true;
+    errorMessage.value = '';
 
     try {
-      // Simulate API call with dummy data
-      await Future.delayed(const Duration(seconds: 1));
+      final userId = AppStorageHelper.get('user_id');
+      if (userId == null || userId.toString().isEmpty) {
+        errorMessage.value = 'User ID not found';
+        developer.log('User ID is empty', name: 'SupportController');
+        return;
+      }
 
-      tickets.value = [
-        SupportTicketModel(
-          id: 'ticket_1',
-          userId: 'user_1',
-          title: 'Slow Internet Speed',
-          description:
-              'My internet connection has been very slow for the past few days.',
-          status: 'Open',
-          priority: 'Medium',
-          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-          category: 'Technical',
-        ),
-        SupportTicketModel(
-          id: 'ticket_2',
-          userId: 'user_1',
-          title: 'Billing Issue',
-          description: 'I was charged twice for this month\'s subscription.',
-          status: 'In Progress',
-          priority: 'High',
-          createdAt: DateTime.now().subtract(const Duration(days: 1)),
-          category: 'Billing',
-        ),
-        SupportTicketModel(
-          id: 'ticket_3',
-          userId: 'user_1',
-          title: 'Connection Problem',
-          description: 'Internet keeps disconnecting randomly.',
-          status: 'Resolved',
-          priority: 'High',
-          createdAt: DateTime.now().subtract(const Duration(days: 3)),
-          category: 'Technical',
-        ),
-      ];
+      final endpoint = AppApi.supportTickets + userId.toString();
+      // final endpoint = AppApi.supportTickets + "10877";
+      developer.log(
+        'Fetching tickets from: $endpoint',
+        name: 'SupportController',
+      );
+
+      final response = await AppNetworkHelper.get(endpoint);
+
+      developer.log(
+        'Response received: ${response.toString()}',
+        name: 'SupportController',
+      );
+
+      if (response.success && response.data != null) {
+        final responseData = response.data as Map<String, dynamic>;
+
+        if (responseData['status'] == 'success' &&
+            responseData['data'] != null) {
+          final List<dynamic> data = responseData['data'];
+          developer.log(
+            'Tickets count: ${data.length}',
+            name: 'SupportController',
+          );
+
+          tickets.value =
+              data
+                  .map((json) {
+                    try {
+                      return SupportTicketModel.fromJson(json);
+                    } catch (e) {
+                      developer.log(
+                        'Error parsing ticket: $e',
+                        name: 'SupportController',
+                      );
+                      return null;
+                    }
+                  })
+                  .whereType<SupportTicketModel>()
+                  .toList();
+
+          developer.log(
+            'Successfully parsed ${tickets.length} tickets',
+            name: 'SupportController',
+          );
+
+          // Sort by date, newest first
+          tickets.sort((a, b) => b.datetime.compareTo(a.datetime));
+
+          errorMessage.value = '';
+        } else {
+          errorMessage.value =
+              responseData['response']?.toString() ?? 'Failed to load tickets';
+          developer.log(
+            'API error: ${errorMessage.value}',
+            name: 'SupportController',
+          );
+        }
+      } else {
+        errorMessage.value = response.message;
+        developer.log(
+          'Network error: ${errorMessage.value}',
+          name: 'SupportController',
+        );
+      }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load support tickets');
+      errorMessage.value = 'Error loading tickets: $e';
+      developer.log('Exception in loadTickets: $e', name: 'SupportController');
     } finally {
       isLoading.value = false;
     }
   }
+
+  // Filter tickets
+  List<SupportTicketModel> get filteredTickets {
+    if (selectedFilter.value == 'all') {
+      return tickets;
+    } else if (selectedFilter.value == 'opened') {
+      return tickets.where((t) => t.isOpened).toList();
+    } else if (selectedFilter.value == 'closed') {
+      return tickets.where((t) => t.isClosed).toList();
+    }
+    return tickets;
+  }
+
+  void setFilter(String filter) {
+    selectedFilter.value = filter;
+  }
+
+  // Get ticket statistics
+  int get totalTickets => tickets.length;
+  int get openedTickets => tickets.where((t) => t.isOpened).length;
+  int get closedTickets => tickets.where((t) => t.isClosed).length;
+  int get highPriorityTickets => tickets.where((t) => t.isHighPriority).length;
 
   void createNewTicket() {
     Get.dialog(

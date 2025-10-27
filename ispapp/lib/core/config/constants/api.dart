@@ -11,4 +11,7 @@ class AppApi {
   static const String payment = '${baseUrl}payment_fetch?user_id=';
   static const String subscription =
       '${baseUrl}Subscription_index?role=user&user_id=';
+  // support tickets
+  static const String supportTickets =
+      '${baseUrl}Support_ticket_fetch?user_role=user&user_id=';
 }

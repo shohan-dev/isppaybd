@@ -1,6 +1,5 @@
 import '../../features/auth/models/user_model.dart';
 import '../../features/payment/models/payment_model.dart';
-import '../../features/support/models/support_model.dart';
 import '../../features/news/models/news_model.dart';
 
 class DummyDataService {
@@ -151,49 +150,6 @@ class DummyDataService {
     ),
   ];
 
-  // Dummy Support Tickets
-  static List<SupportTicketModel> dummySupportTickets = [
-    SupportTicketModel(
-      id: 'ticket_1',
-      userId: 'user_1',
-      title: 'Internet Connection Issue',
-      description: 'My internet connection is very slow since yesterday.',
-      status: 'Open',
-      priority: 'Medium',
-      category: 'Technical',
-      createdAt: DateTime(2024, 10, 5),
-      messages: [
-        SupportMessageModel(
-          id: 'msg_1',
-          ticketId: 'ticket_1',
-          message: 'My internet connection is very slow since yesterday.',
-          senderType: 'user',
-          createdAt: DateTime(2024, 10, 5),
-        ),
-        SupportMessageModel(
-          id: 'msg_2',
-          ticketId: 'ticket_1',
-          message:
-              'We are checking your connection. Please restart your router.',
-          senderType: 'admin',
-          createdAt: DateTime(2024, 10, 5, 10, 30),
-        ),
-      ],
-    ),
-    SupportTicketModel(
-      id: 'ticket_2',
-      userId: 'user_1',
-      title: 'Package Upgrade Request',
-      description: 'I want to upgrade to 50MBPS package.',
-      status: 'Resolved',
-      priority: 'Low',
-      category: 'Billing',
-      createdAt: DateTime(2024, 9, 20),
-      resolvedAt: DateTime(2024, 9, 22),
-      messages: [],
-    ),
-  ];
-
   // Dummy News
   static List<NewsModel> dummyNews = [
     NewsModel(
@@ -264,13 +220,6 @@ class DummyDataService {
   // Get user bills
   static List<BillModel> getUserBills(String userId) {
     return dummyBills.where((bill) => bill.userId == userId).toList();
-  }
-
-  // Get user support tickets
-  static List<SupportTicketModel> getUserSupportTickets(String userId) {
-    return dummySupportTickets
-        .where((ticket) => ticket.userId == userId)
-        .toList();
   }
 
   // Get all packages
