@@ -205,3 +205,41 @@ class PackageModel {
   String get formattedBandwidth => '${bandwidth}Mbps';
   bool get isActive => status.toLowerCase() == 'active';
 }
+
+// Renewal Request Model
+class SubscriptionRenewRequest {
+  final String role;
+  final String packageId;
+  final String customer;
+
+  SubscriptionRenewRequest({
+    required this.role,
+    required this.packageId,
+    required this.customer,
+  });
+
+  String toQueryString() {
+    return 'role=$role&package_id=$packageId&customer=$customer';
+  }
+}
+
+// Renewal Response Model
+class SubscriptionRenewResponse {
+  final bool success;
+  final String message;
+  final Map<String, dynamic>? data;
+
+  SubscriptionRenewResponse({
+    required this.success,
+    required this.message,
+    this.data,
+  });
+
+  factory SubscriptionRenewResponse.fromJson(Map<String, dynamic> json) {
+    return SubscriptionRenewResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      data: json['data'] as Map<String, dynamic>?,
+    );
+  }
+}

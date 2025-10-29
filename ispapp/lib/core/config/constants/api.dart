@@ -17,8 +17,7 @@ class AppApi {
   // subscriptions
   static const String subscription =
       '${baseUrl}Subscription_index?role=user&user_id=';
-  static const String subscriptionRenew =
-      '${baseUrl}Subscription_renew/?role=user&package_id=41&customer=21120';
+  static const String subscriptionRenew = '${baseUrl}Subscription_renew/';
 
   // support tickets
   static const String supportTickets =

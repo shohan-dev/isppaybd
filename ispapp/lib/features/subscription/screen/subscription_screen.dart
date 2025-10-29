@@ -63,6 +63,9 @@ class SubscriptionScreen extends StatelessWidget {
                 _buildCurrentPackageCard(controller),
                 _buildAvailablePackagesSection(controller),
                 const SizedBox(height: 20),
+                // Renew Button
+                _buildRenewButton(controller),
+                const SizedBox(height: 30),
               ],
             ),
           ),
@@ -735,5 +738,146 @@ class SubscriptionScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildRenewButton(SubscriptionController controller) {
+    return Obx(() {
+      final isRenewing = controller.isRenewing.value;
+      final selectedPackage = controller.selectedPackage.value;
+      final isPackageSelected = selectedPackage != null;
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            // Package selection info
+            if (isPackageSelected) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Selected Package',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${selectedPackage.packageName} - ${selectedPackage.formattedBandwidth}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blue.shade900,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      selectedPackage.formattedPrice,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.blue.shade900,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Renew button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed:
+                    isRenewing || !isPackageSelected
+                        ? null
+                        : () => controller.showRenewConfirmation(Get.context!),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade600,
+                  elevation: isPackageSelected ? 4 : 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child:
+                    isRenewing
+                        ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Processing...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                        : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.refresh, size: 24),
+                            SizedBox(width: 12),
+                            Text(
+                              'Renew Subscription',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+              ),
+            ),
+
+            // Help text
+            if (!isPackageSelected) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Please select a package from the list above',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }
