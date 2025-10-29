@@ -5,6 +5,7 @@ import 'package:ispapp/features/auth/screens/login_view.dart';
 import 'package:ispapp/features/packages/screens/packages_view.dart';
 import 'package:ispapp/features/news/screens/news_view.dart';
 import 'package:ispapp/features/payment/screens/payment_view.dart';
+import 'package:ispapp/features/profile/screen/profile_screen.dart';
 import 'package:ispapp/features/subscription/screen/subscription_screen.dart';
 import 'package:ispapp/features/support/screens/support_view.dart';
 import 'package:ispapp/shared/widgets/navigation/bottom_navbar/bottom_navbar.dart';
@@ -69,10 +70,10 @@ class AppPages {
     ),
 
     // TODO: Add more routes as needed
-    // GetPage(
-    //   name: AppRoutes.profile,
-    //   page: () => const ProfileView(),
-    //   binding: ProfileBinding(),
-    // ),
+    GetPage(
+      name: AppRoutes.profile,
+      page: () => const ProfileScreen(),
+      // binding: ProfileBinding(),
+    ),
   ];
 }

@@ -67,34 +67,42 @@ class HomeView extends StatelessWidget {
             // Top Bar
             Row(
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: AppColors.borderWhite, width: 2),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child:
-                        homeController
-                                    .currentUser
-                                    .value
-                                    ?.profileImage
-                                    .isNotEmpty ==
-                                true
-                            ? Image.asset(
-                              homeController.currentUser.value!.profileImage,
-                              fit: BoxFit.cover,
-                            )
-                            : Container(
-                              color: AppColors.overlay20,
-                              child: const Icon(
-                                Icons.person,
-                                size: 30,
-                                color: AppColors.textWhite,
+                GestureDetector(
+                  onTap: () {
+                    Get.toNamed(AppRoutes.profile);
+                  },
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: AppColors.borderWhite,
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child:
+                          homeController
+                                      .currentUser
+                                      .value
+                                      ?.profileImage
+                                      .isNotEmpty ==
+                                  true
+                              ? Image.asset(
+                                homeController.currentUser.value!.profileImage,
+                                fit: BoxFit.cover,
+                              )
+                              : Container(
+                                color: AppColors.overlay20,
+                                child: const Icon(
+                                  Icons.person,
+                                  size: 30,
+                                  color: AppColors.textWhite,
+                                ),
                               ),
-                            ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
