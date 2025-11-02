@@ -125,6 +125,110 @@ class SupportController extends GetxController {
   int get closedTickets => tickets.where((t) => t.isClosed).length;
   int get highPriorityTickets => tickets.where((t) => t.isHighPriority).length;
 
+  // Create ticket method - POST request
+  Future<bool> createTicket({
+    required String subject,
+    required String category,
+    required String priority,
+    required String message,
+  }) async {
+    try {
+      final userId = AppStorageHelper.get('user_id');
+      if (userId == null || userId.toString().isEmpty) {
+        developer.log('User ID not found', name: 'SupportController');
+        Get.snackbar(
+          'Error',
+          'User ID not found. Please login again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      // Create request model
+      final request = CreateTicketRequest(
+        userId: userId.toString(),
+        subject: subject,
+        category: category,
+        priority: priority,
+        message: message,
+      );
+
+      developer.log(
+        'Creating ticket with data: ${request.toJson()}',
+        name: 'SupportController',
+      );
+
+      // Make POST request
+      final response = await AppNetworkHelper.post<Map<String, dynamic>>(
+        AppApi.createTicket,
+        data: request.toJson(),
+      );
+
+      developer.log(
+        'Create ticket response: ${response.data}',
+        name: 'SupportController',
+      );
+
+      if (response.success && response.data != null) {
+        final ticketResponse = CreateTicketResponse.fromJson(response.data!);
+
+        if (ticketResponse.success) {
+          developer.log(
+            'Ticket created successfully. ID: ${ticketResponse.ticketId}',
+            name: 'SupportController',
+          );
+
+          Get.snackbar(
+            'Success',
+            ticketResponse.message.isNotEmpty
+                ? ticketResponse.message
+                : 'Support ticket created successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+
+          // Reload tickets to show the new one
+          await loadTickets();
+          return true;
+        } else {
+          Get.snackbar(
+            'Failed',
+            ticketResponse.message.isNotEmpty
+                ? ticketResponse.message
+                : 'Failed to create ticket',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+          );
+          return false;
+        }
+      } else {
+        Get.snackbar(
+          'Error',
+          response.message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      developer.log('Exception in createTicket: $e', name: 'SupportController');
+      Get.snackbar(
+        'Error',
+        'Error creating ticket: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+  }
+
   void createNewTicket() {
     Get.dialog(
       AlertDialog(

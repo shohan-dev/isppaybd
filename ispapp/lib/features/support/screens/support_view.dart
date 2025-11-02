@@ -28,6 +28,12 @@ class SupportView extends StatelessWidget {
         foregroundColor: AppColors.textWhite,
         elevation: 0,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCreateTicketDialog(context, controller),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add),
+        label: const Text('New Ticket'),
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
@@ -659,5 +665,363 @@ class SupportView extends StatelessWidget {
       default:
         return Icons.support;
     }
+  }
+
+  void _showCreateTicketDialog(
+    BuildContext context,
+    SupportController controller,
+  ) {
+    final formKey = GlobalKey<FormState>();
+    final subjectController = TextEditingController();
+    final messageController = TextEditingController();
+    String selectedCategory = 'technical';
+    String selectedPriority = 'medium';
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: AppColors.headerGradient,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.support_agent,
+                          color: AppColors.textWhite,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Create Support Ticket',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              'We\'re here to help you',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(Icons.close),
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Subject Field
+                  const Text(
+                    'Subject *',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: subjectController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter ticket subject',
+                      prefixIcon: const Icon(Icons.title, size: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.backgroundGrey,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a subject';
+                      }
+                      if (value.length < 5) {
+                        return 'Subject must be at least 5 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Category Field
+                  const Text(
+                    'Category *',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            _getCategoryIcon(selectedCategory),
+                            size: 20,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.backgroundGrey,
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'technical',
+                            child: Text('Technical'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'billing',
+                            child: Text('Billing'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'general',
+                            child: Text('General'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'account',
+                            child: Text('Account'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCategory = value!;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Priority Field
+                  const Text(
+                    'Priority *',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return DropdownButtonFormField<String>(
+                        value: selectedPriority,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.flag,
+                            size: 20,
+                            color: _getPriorityColor(selectedPriority),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.backgroundGrey,
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'low',
+                            child: Text('Low Priority'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'medium',
+                            child: Text('Medium Priority'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'high',
+                            child: Text('High Priority'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            selectedPriority = value!;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Message Field
+                  const Text(
+                    'Message *',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: messageController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: 'Describe your issue in detail...',
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.backgroundGrey,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a message';
+                      }
+                      if (value.length < 10) {
+                        return 'Message must be at least 10 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Get.back(),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            if (formKey.currentState!.validate()) {
+                              Get.back(); // Close dialog first
+
+                              // Show loading
+                              Get.dialog(
+                                const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                barrierDismissible: false,
+                              );
+
+                              // Create ticket
+                              final success = await controller.createTicket(
+                                subject: subjectController.text.trim(),
+                                category: selectedCategory,
+                                priority: selectedPriority,
+                                message: messageController.text.trim(),
+                              );
+
+                              // Close loading
+                              Get.back();
+
+                              if (success) {
+                                subjectController.dispose();
+                                messageController.dispose();
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.send),
+                          label: const Text('Create Ticket'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textWhite,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

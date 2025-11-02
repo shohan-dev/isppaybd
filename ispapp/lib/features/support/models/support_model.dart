@@ -1,6 +1,55 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+// Create Ticket Request Model
+class CreateTicketRequest {
+  final String userId;
+  final String subject;
+  final String category;
+  final String priority;
+  final String message;
+
+  CreateTicketRequest({
+    required this.userId,
+    required this.subject,
+    required this.category,
+    required this.priority,
+    required this.message,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'subject': subject,
+      'category': category,
+      'priority': priority,
+      'message': message,
+    };
+  }
+}
+
+// Create Ticket Response Model
+class CreateTicketResponse {
+  final bool success;
+  final String message;
+  final String? ticketId;
+
+  CreateTicketResponse({
+    required this.success,
+    required this.message,
+    this.ticketId,
+  });
+
+  factory CreateTicketResponse.fromJson(Map<String, dynamic> json) {
+    return CreateTicketResponse(
+      success: json['status'] == 'success',
+      message:
+          json['response']?.toString() ?? json['message']?.toString() ?? '',
+      ticketId: json['ticket_id']?.toString(),
+    );
+  }
+}
+
 class SupportTicketModel {
   final String id;
   final String userId;
