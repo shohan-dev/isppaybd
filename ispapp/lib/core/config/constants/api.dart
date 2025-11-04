@@ -26,4 +26,5 @@ class AppApi {
       '${baseUrl}ticket_details?user_role=user&ticket_id=';
   static const String supportTicketSendMessage =
       '${baseUrl}send_message?message=from api&current_user_id=806&ticket_id=20';
+  static const String createTicket = '${baseUrl}create_ticket';
 }
