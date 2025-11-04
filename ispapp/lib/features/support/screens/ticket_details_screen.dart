@@ -87,24 +87,24 @@ class TicketDetailsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.badgeBackground,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Ticket #${ticket.id}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.badgeText,
-                  ),
-                ),
-              ),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(
+              //     horizontal: 12,
+              //     vertical: 6,
+              //   ),
+              //   decoration: BoxDecoration(
+              //     color: AppColors.badgeBackground,
+              //     borderRadius: BorderRadius.circular(8),
+              //   ),
+              //   child: Text(
+              //     'Ticket #${ticket.id}',
+              //     style: const TextStyle(
+              //       fontSize: 14,
+              //       fontWeight: FontWeight.bold,
+              //       color: AppColors.badgeText,
+              //     ),
+              //   ),
+              // ),
               Row(
                 children: [
                   // Status Badge

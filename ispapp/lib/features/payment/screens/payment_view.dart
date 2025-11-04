@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/config/constants/color.dart';
+import '../../../core/config/constants/api.dart';
+import 'payment_webview_screen.dart';
 import '../controllers/payment_controller.dart';
 
 class PaymentView extends StatelessWidget {
@@ -325,144 +327,170 @@ class PaymentView extends StatelessWidget {
   }
 
   Widget _buildPaymentCard(payment) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowLight,
-            spreadRadius: 1,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: payment.statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+    // Build the tappable payment card. Tapping a pending payment opens the payment web page.
+    return GestureDetector(
+      onTap: () {
+        try {
+          if (payment.isPending) {
+            // Prefer numeric invoice if present, otherwise use payment id
+            final invoiceCandidate = payment.invoice?.toString() ?? '';
+            final targetId =
+                (invoiceCandidate.isNotEmpty &&
+                        int.tryParse(invoiceCandidate) != null)
+                    ? invoiceCandidate
+                    : payment.id.toString();
+
+            final url = '${AppApi.baseUrl}make-payment/$targetId';
+            Get.to(() => PaymentWebViewScreen(url: url, title: 'Make Payment'));
+            return;
+          }
+        } catch (e) {
+          // ignore errors and allow normal tap behavior
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowLight,
+              spreadRadius: 1,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: payment.statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    payment.paymentIcon,
+                    color: payment.statusColor,
+                    size: 24,
+                  ),
                 ),
-                child: Icon(
-                  payment.paymentIcon,
-                  color: payment.statusColor,
-                  size: 24,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        payment.invoice,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${payment.month} • ${payment.paidVia}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      payment.invoice,
+                      payment.formattedAmount,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${payment.month} • ${payment.paidVia}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: payment.statusColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: payment.statusColor.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        payment.status.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: payment.statusColor,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ],
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundGrey,
+                borderRadius: BorderRadius.circular(8),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Row(
                 children: [
-                  Text(
-                    payment.formattedAmount,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                  Expanded(
+                    child: _buildInfoRow(
+                      Icons.calendar_today,
+                      'Paid Date',
+                      payment.formattedDate,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                  Container(width: 1, height: 30, color: AppColors.borderLight),
+                  Expanded(
+                    child: _buildInfoRow(
+                      Icons.receipt,
+                      'Amount',
+                      '৳${payment.amount.toStringAsFixed(0)}',
                     ),
-                    decoration: BoxDecoration(
-                      color: payment.statusColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: payment.statusColor.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      payment.status.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: payment.statusColor,
-                        letterSpacing: 0.5,
-                      ),
+                  ),
+                ],
+              ),
+            ),
+            if (payment.methodTrx.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.tag,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Trx: ${payment.methodTrx}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.backgroundGrey,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.calendar_today,
-                    'Paid Date',
-                    payment.formattedDate,
-                  ),
-                ),
-                Container(width: 1, height: 30, color: AppColors.borderLight),
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.receipt,
-                    'Amount',
-                    '৳${payment.amount.toStringAsFixed(0)}',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (payment.methodTrx.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.tag, size: 14, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  'Trx: ${payment.methodTrx}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
           ],
-        ],
+        ),
       ),
     );
   }

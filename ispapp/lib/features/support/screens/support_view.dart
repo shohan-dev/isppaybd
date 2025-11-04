@@ -468,13 +468,10 @@ class SupportView extends StatelessWidget {
                       color: AppColors.badgeBackground,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      '#${ticket.id}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.badgeText,
-                      ),
+                    child: Icon(
+                      Icons.confirmation_number,
+                      size: 12,
+                      color: AppColors.badgeText,
                     ),
                   ),
                   const SizedBox(width: 8),

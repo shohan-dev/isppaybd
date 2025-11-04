@@ -135,18 +135,18 @@ class HomeView extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications,
-                    color: AppColors.textWhite,
-                    size: 28,
-                  ),
-                  onPressed:
-                      () => Get.snackbar(
-                        'Info',
-                        'Notifications feature coming soon!',
-                      ),
-                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.notifications,
+                //     color: AppColors.textWhite,
+                //     size: 28,
+                //   ),
+                //   onPressed:
+                //       () => Get.snackbar(
+                //         'Info',
+                //         'Notifications feature coming soon!',
+                //       ),
+                // ),
                 IconButton(
                   icon: const Icon(
                     Icons.logout,
