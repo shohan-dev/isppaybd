@@ -4,11 +4,14 @@ import 'package:get/get.dart';
 import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import 'package:ispapp/core/config/constants/api.dart';
 import 'package:ispapp/core/services/api_service.dart';
+import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../models/dashboard_model.dart';
 import '../../auth/models/user_model.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 class HomeController extends GetxController {
+  // Track last successful real-time fetch
+  DateTime? _lastTrafficSuccess;
   final AuthController authController = Get.find<AuthController>();
 
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
@@ -66,7 +69,6 @@ class HomeController extends GetxController {
       if (response.success && response.data != null) {
         // Parse dashboard response
         dashboardData.value = response.data;
-
 
         // Update current user with API data
         final userDetails = dashboardData.value!.details;
@@ -291,9 +293,11 @@ class HomeController extends GetxController {
   }
 
   String get packageName {
-    // Return package ID for now
-    // TODO: Can be enhanced to fetch actual package name from packages API
-    return dashboardData.value?.details.packageId ?? 'N/A';
+    // Return package name
+    final packageName =
+        Get.find<PackagesController>().currentUserPackage.value?.packageName;
+
+    return packageName ?? 'N/A';
   }
 
   double get uploadUsed {
@@ -321,6 +325,9 @@ class HomeController extends GetxController {
     print('🚀 Starting real-time traffic monitoring');
     isRealTimeActive.value = true;
     trafficErrorCount.value = 0;
+
+    // Initialize last success time to now (give 10 seconds grace period)
+    _lastTrafficSuccess = DateTime.now();
 
     // Initialize chart data with empty values
     realTimeChartData.clear();
@@ -350,11 +357,28 @@ class HomeController extends GetxController {
     isRealTimeActive.value = false;
     isTrafficLoading.value = false;
     trafficErrorCount.value = 0;
+    _lastTrafficSuccess = null; // Reset on stop
   }
 
   Future<void> _fetchRealTimeTrafficData() async {
     // Prevent multiple simultaneous calls
     if (isTrafficLoading.value) return;
+
+    // Auto-offline: Check if more than 10 seconds since last success
+    if (_lastTrafficSuccess != null) {
+      final secondsSinceLastSuccess =
+          DateTime.now().difference(_lastTrafficSuccess!).inSeconds;
+
+      print("⏱️ Seconds since last success: ${secondsSinceLastSuccess}s");
+
+      if (secondsSinceLastSuccess > 10) {
+        print(
+          '⚠️ No successful traffic fetch in ${secondsSinceLastSuccess}s, going offline',
+        );
+        _stopRealTimeTrafficMonitoring();
+        return;
+      }
+    }
 
     isTrafficLoading.value = true;
 
@@ -397,6 +421,8 @@ class HomeController extends GetxController {
       if (response.success && response.data != null) {
         // Reset error count on successful response
         trafficErrorCount.value = 0;
+        // Update last success time on EVERY successful fetch
+        _lastTrafficSuccess = DateTime.now();
 
         // Parse traffic data
         final trafficData = response.data!;
@@ -430,6 +456,7 @@ class HomeController extends GetxController {
           );
         }
       } else {
+        // API failed - DON'T update last success time
         trafficErrorCount.value++;
         if (trafficErrorCount.value <= 2) {
           // Only log first few errors to avoid spam
@@ -439,6 +466,7 @@ class HomeController extends GetxController {
         }
       }
     } catch (e) {
+      // API failed - DON'T update last success time
       trafficErrorCount.value++;
       if (trafficErrorCount.value <= 2) {
         // Only log first few errors

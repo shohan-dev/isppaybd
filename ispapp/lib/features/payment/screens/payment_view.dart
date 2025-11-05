@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/config/constants/color.dart';
+import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import '../../../core/config/constants/api.dart';
 import 'payment_webview_screen.dart';
 import '../controllers/payment_controller.dart';
@@ -328,6 +329,7 @@ class PaymentView extends StatelessWidget {
 
   Widget _buildPaymentCard(payment) {
     // Build the tappable payment card. Tapping a pending payment opens the payment web page.
+    final token = AppStorageHelper.get("token");
     return GestureDetector(
       onTap: () {
         try {
@@ -341,7 +343,14 @@ class PaymentView extends StatelessWidget {
                     : payment.id.toString();
 
             final url = '${AppApi.baseUrl}make-payment/$targetId';
-            Get.to(() => PaymentWebViewScreen(url: url, title: 'Make Payment'));
+            // final url = 'https://isppaybd.com/dashboard';
+            Get.to(
+              () => PaymentWebViewScreen(
+                url: url,
+                title: 'Make Payment',
+                token: token ?? '',
+              ),
+            );
             return;
           }
         } catch (e) {

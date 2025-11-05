@@ -100,6 +100,7 @@ class AuthController extends GetxController {
         final userId = responseObj['user_id']?.toString() ?? '';
         final userRole = responseObj['user_role']?.toString() ?? 'user';
         final adminId = responseObj['admin_id']?.toString() ?? '';
+        final sessionkey = responseObj['file_name']?.toString() ?? '';
 
         print('Extracted user_id: $userId');
         print('Extracted user_role: $userRole');
@@ -112,6 +113,7 @@ class AuthController extends GetxController {
         // Save only the user_id (this indicates user is logged in)
         print('💾 Saving user_id: $userId');
         AppStorageHelper.put(_keyUserId, userId);
+        AppStorageHelper.put("token", sessionkey);
 
         // Update controller state
         isLoggedIn.value = true;

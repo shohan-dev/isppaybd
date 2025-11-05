@@ -8,15 +8,14 @@ import 'package:ispapp/features/payment/screens/payment_view.dart';
 import 'package:ispapp/features/profile/screen/profile_screen.dart';
 import 'package:ispapp/features/subscription/screen/subscription_screen.dart';
 import 'package:ispapp/features/support/screens/support_view.dart';
-import 'package:ispapp/other.dart';
 import 'package:ispapp/shared/widgets/navigation/bottom_navbar/bottom_navbar.dart';
 import 'package:ispapp/shared/widgets/navigation/splash/splash_screen.dart';
 
 class AppPages {
   static final List<GetPage> pages = [
     // Splash Screen
-    // GetPage(name: AppRoutes.splash, page: () => const SplashScreen()),
-    GetPage(name: AppRoutes.splash, page: () => OtherScreen()),
+    GetPage(name: AppRoutes.splash, page: () => const SplashScreen()),
+    // GetPage(name: AppRoutes.splash, page: () => OtherScreen()),
 
     // Authentication Routes
     GetPage(

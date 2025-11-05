@@ -4,6 +4,7 @@ import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/screens/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/screens/widgets/realTimeChartPainter.dart';
+import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 
@@ -12,6 +13,7 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(PackagesController());
     final HomeController homeController = Get.find<HomeController>();
     final AuthController authController = Get.find<AuthController>();
 
@@ -602,8 +604,8 @@ class HomeView extends StatelessWidget {
           _buildRealTimeTrafficChart(homeController),
           const SizedBox(height: 20),
           _buildPaymentChart(homeController),
-          const SizedBox(height: 20),
-          _buildNewsSection(homeController),
+          // const SizedBox(height: 20),
+          // _buildNewsSection(homeController),
         ],
       ),
     );

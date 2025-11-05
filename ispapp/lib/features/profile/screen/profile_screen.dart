@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../../../core/config/constants/color.dart';
 import '../../../core/config/constants/size.dart';
 import '../controller/profile_controller.dart';
@@ -308,6 +309,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildAdditionalInfo(user, ProfileController controller) {
+    final packageName =
+        Get.find<PackagesController>().currentUserPackage.value?.packageName ??
+        'N/A';
     return Container(
       padding: const EdgeInsets.all(AppSizes.md),
       decoration: BoxDecoration(
@@ -333,7 +337,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const Divider(height: AppSizes.md),
-          _buildInfoRow('Package ID', user.packageId),
+          _buildInfoRow('Package Name', packageName),
           _buildInfoRow('Last Renewed', user.lastRenewed),
           _buildInfoRow('Will Expire', user.willExpire),
           _buildInfoRow('Account Balance', '৳${user.fund}'),
