@@ -53,10 +53,12 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       WebViewCookie(
         name: 'ci_session',
         value: token,
-        domain: 'https://isppaybd.com',
+        domain: '.isppaybd.com',
         path: '/',
       ),
     );
+
+    print("token is: $token");
 
     debugPrint("✅ Cookie successfully set before loading page");
 
