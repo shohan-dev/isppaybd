@@ -564,43 +564,43 @@ class HomeView extends StatelessWidget {
       child: Column(
         children: [
           // Usage cards row
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Row(
-                children: [
-                  Expanded(
-                    child: _buildUsageCard(
-                      icon: Icons.file_upload,
-                      title: 'Upload',
-                      value:
-                          '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
-                      color: AppColors.uploadColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildUsageCard(
-                      icon: Icons.access_time,
-                      title: 'Uptime',
-                      value: homeController.getUptimeValue(),
-                      color: AppColors.uptimeColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildUsageCard(
-                      icon: Icons.file_download,
-                      title: 'Download',
-                      value:
-                          '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
-                      color: AppColors.downloadColor,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 20),
+          // LayoutBuilder(
+          //   builder: (context, constraints) {
+          //     return Row(
+          //       children: [
+          //         Expanded(
+          //           child: _buildUsageCard(
+          //             icon: Icons.file_upload,
+          //             title: 'Upload',
+          //             value:
+          //                 '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
+          //             color: AppColors.uploadColor,
+          //           ),
+          //         ),
+          //         const SizedBox(width: 12),
+          //         Expanded(
+          //           child: _buildUsageCard(
+          //             icon: Icons.access_time,
+          //             title: 'Uptime',
+          //             value: homeController.getUptimeValue(),
+          //             color: AppColors.uptimeColor,
+          //           ),
+          //         ),
+          //         const SizedBox(width: 12),
+          //         Expanded(
+          //           child: _buildUsageCard(
+          //             icon: Icons.file_download,
+          //             title: 'Download',
+          //             value:
+          //                 '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
+          //             color: AppColors.downloadColor,
+          //           ),
+          //         ),
+          //       ],
+          //     );
+          //   },
+          // ),
+          // const SizedBox(height: 20),
           _buildRealTimeTrafficChart(homeController),
           const SizedBox(height: 20),
           _buildPaymentChart(homeController),

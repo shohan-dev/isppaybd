@@ -165,6 +165,9 @@ class AppStorageHelper {
       "countryCode",
       "isNotFirst",
       "location",
+      "last_login_email",
+      "saved_password",
+      "remember_me",
     ]);
   }
 

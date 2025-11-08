@@ -170,7 +170,7 @@ class LoginView extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     // Remember Me and Forgot Password
                     Row(
@@ -183,21 +183,21 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const Text('Remember me?'),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: authController.forgotPassword,
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              color: Color(0xFF4A90E2),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
+                        // const Spacer(),
+                        // GestureDetector(
+                        //   onTap: authController.forgotPassword,
+                        //   child: const Text(
+                        //     'Forgot Password?',
+                        //     style: TextStyle(
+                        //       color: Color(0xFF4A90E2),
+                        //       decoration: TextDecoration.underline,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
 
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 10),
 
                     // Login Button
                     Obx(
@@ -246,42 +246,7 @@ class LoginView extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 30),
-
                     // Registration Link
-                    Center(
-                      child: RichText(
-                        text: TextSpan(
-                          text: 'Are you a customer of ',
-                          style: const TextStyle(color: Colors.black54),
-                          children: [
-                            const TextSpan(
-                              text: 'ISP Broadband',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF4A90E2),
-                              ),
-                            ),
-                            const TextSpan(text: '?\n'),
-                            const TextSpan(text: 'Ensure your account is '),
-                            WidgetSpan(
-                              child: GestureDetector(
-                                onTap: authController.register,
-                                child: const Text(
-                                  'Registered',
-                                  style: TextStyle(
-                                    color: Color(0xFF4A90E2),
-                                    decoration: TextDecoration.underline,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
                   ],
                 ),
               ),

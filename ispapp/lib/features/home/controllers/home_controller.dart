@@ -64,7 +64,7 @@ class HomeController extends GetxController {
         mapper: (data) => DashboardResponse.fromJson(data),
       );
 
-      print('📊 Dashboard API Response: ${response.data}');
+      // print('📊 Dashboard API Response: ${response.data}');
 
       if (response.success && response.data != null) {
         // Parse dashboard response
@@ -193,11 +193,12 @@ class HomeController extends GetxController {
   }
 
   String _getConnectionStatus(String connStatus, String activity) {
+    // Handle both "conn" and "disconn" status from API
     if (connStatus == 'conn' && activity == 'active') {
       return 'Connected';
     } else if (connStatus == 'conn' && activity == 'inactive') {
       return 'Connected (Inactive)';
-    } else if (connStatus == 'disc') {
+    } else if (connStatus == 'disconn' || connStatus == 'disc') {
       return 'Disconnected';
     } else {
       return 'Unknown';
@@ -231,6 +232,13 @@ class HomeController extends GetxController {
       ),
       NewsItem(
         id: 'news_2',
+        title: 'Subscription Status',
+        description:
+            'Your subscription is ${dashboardData.value!.details.subscriptionStatus}',
+        publishedAt: DateTime.now().subtract(const Duration(minutes: 30)),
+      ),
+      NewsItem(
+        id: 'news_3',
         title: 'Connection Status',
         description:
             'Status: ${_getConnectionStatus(dashboardData.value!.details.connStatus, dashboardData.value!.details.activity)}',
@@ -280,6 +288,13 @@ class HomeController extends GetxController {
   String get packageExpiry => dashboardData.value?.details.willExpire ?? 'N/A';
   String get lastRenewal => dashboardData.value?.details.lastRenewed ?? 'N/A';
   int get paymentReceived => dashboardData.value?.paymentReceived ?? 0;
+  int get paymentPending => dashboardData.value?.paymentPending ?? 0;
+  int get totalSupportTicket => dashboardData.value?.totalSupportTicket ?? 0;
+  String get subscriptionStatus =>
+      dashboardData.value?.details.subscriptionStatus ?? 'N/A';
+  String get accountStatus => dashboardData.value?.details.status ?? 'N/A';
+  String get pppoeUsername => dashboardData.value?.pppoe ?? 'N/A';
+  String get fund => dashboardData.value?.details.fund ?? '0.00';
 
   // New getters for home_view to replace currentPackage
   String get connectionStatus {
@@ -309,10 +324,6 @@ class HomeController extends GetxController {
     // Usage data not yet available from API
     return 0.0;
   }
-
-  int get paymentPending => dashboardData.value?.paymentPending ?? 0;
-  int get supportTickets => dashboardData.value?.totalSupportTicket ?? 0;
-  String get accountBalance => dashboardData.value?.details.fund ?? '0.00';
 
   // Real-time traffic monitoring methods
   void _startRealTimeTrafficMonitoring() {
