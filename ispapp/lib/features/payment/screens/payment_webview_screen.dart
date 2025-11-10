@@ -1,3 +1,5 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -23,6 +25,12 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
   String get token => widget.token;
+  final listofwebsite = [
+    "https://isppaybd.com/payment",
+    "https://isppaybd.com/dashboard",
+    "https://isppaybd.com/auth/login",
+    "https://isppaybd.com",
+  ];
 
   @override
   void initState() {
@@ -58,7 +66,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       ),
     );
 
-    print("token is: $token");
+    // print("token is: $token");
 
     debugPrint("✅ Cookie successfully set before loading page");
 
@@ -68,9 +76,13 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() => _isLoading = true),
+          onPageStarted: (url) {
+            setState(() => _isLoading = true);
+            _checkUrlAndClose(url);
+          },
           onPageFinished: (url) async {
             setState(() => _isLoading = false);
+            _checkUrlAndClose(url);
             try {
               final cookies = await controller.runJavaScriptReturningResult(
                 'document.cookie',
@@ -95,6 +107,36 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     }
 
     setState(() => _controller = controller);
+  }
+
+  void _checkUrlAndClose(String url) {
+    debugPrint('🔍 Checking URL: $url');
+
+    // Check if the current URL EXACTLY matches any URL in the list
+    for (final targetUrl in listofwebsite) {
+      // Exact match check (with or without trailing slash)
+      final urlWithoutSlash =
+          url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+      final targetWithoutSlash =
+          targetUrl.endsWith('/')
+              ? targetUrl.substring(0, targetUrl.length - 1)
+              : targetUrl;
+
+      if (urlWithoutSlash == targetWithoutSlash) {
+        debugPrint('✅ EXACT URL match found: $url == $targetUrl');
+        debugPrint('🔙 Auto-closing webview and navigating back...');
+
+        // Close the webview and go back
+        Future.delayed(const Duration(milliseconds: 0), () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+        return;
+      }
+    }
+
+    debugPrint('✔️ URL is different, continuing: $url');
   }
 
   @override
