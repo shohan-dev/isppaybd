@@ -25,7 +25,7 @@ def test_chat_simple():
         "message": "Hello, can you help me?",
         "history": []
     }
-    response = requests.post(f"{BASE_URL}/chat", json=payload)
+    response = requests.post(f"{BASE_URL}/chat", json= )
     print(f"✅ Status: {response.status_code}")
     print(f"💬 Reply: {response.json()['reply']}")
     print()

@@ -48,11 +48,12 @@ class ContextCompressor:
         if not text or len(text) < 100:
             return text  # No need to compress short text
         
-        prompt = f"""Compress the following conversation context into 2-3 concise sentences while preserving:
-- Key user issues or requests
-- Important account details
-- Current status or state
-- Action items
+        prompt = f"""Compress the following conversation into 2-3 concise sentences. Focus ONLY on:
+- The user's main problem or request
+- Key account details (phone, status, etc.)
+- Current state (resolved, pending, etc.)
+
+Keep it factual and brief. No greetings or filler.
 
 Context:
 {text}
@@ -61,7 +62,13 @@ Compressed Summary:"""
         
         try:
             response = self.model([HumanMessage(content=prompt)])
-            return response.content.strip()
+            compressed = response.content.strip()
+            
+            # Remove any greeting or unnecessary phrases
+            compressed = compressed.replace('The user', 'User')
+            compressed = compressed.replace('The customer', 'User')
+            
+            return compressed
         except Exception as e:
             print(f"Compression error: {e}")
             return text  # Fallback to original if compression fails

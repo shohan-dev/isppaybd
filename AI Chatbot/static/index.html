@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Support Agent - ISP Chatbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/premium-updates.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Support Agent</span>
+                </div>
+                <button class="new-chat-btn" onclick="createNewChat()">
+                    <i class="fas fa-plus"></i>
+                    New Chat
+                </button>
+            </div>
+
+            <div class="chat-history" id="chatHistory">
+                <!-- Chat history items will be inserted here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Guest User</span>
+                </div>
+                <button class="settings-btn" onclick="toggleSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <div class="chat-header">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="chat-title">ISP Support Assistant</h1>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Online</span>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="welcome-screen">
+            <div class="welcome-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h2>Welcome to ISP Support</h2>
+            <p>I'm your AI assistant, ready to help with internet service, billing, technical issues, and more. How can I assist you today?</p>
+            
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="sendQuickAction('My internet is not working')">
+                    <i class="fas fa-wifi"></i>
+                    <span>Connection Issue</span>
+                </button>
+                <button class="quick-action-btn" onclick="sendQuickAction('Check my account status')">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Account Status</span>
+                </button>
+                <button class="quick-action-btn" onclick="sendQuickAction('My internet is slow')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Speed Problem</span>
+                </button>
+                <button class="quick-action-btn" onclick="sendQuickAction('I need technical support')">
+                    <i class="fas fa-tools"></i>
+                    <span>Tech Support</span>
+                </button>
+            </div>
+        </div>
+
+            </div>
+
+            <div class="chat-input-container">
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <form class="chat-input-form" onsubmit="sendMessage(event)">
+                    <button type="button" class="attach-btn" title="Attach file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="messageInput" 
+                        placeholder="Type your message here..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div class="input-footer">
+                    <small>Powered by GPT-4o-mini • Press Enter to send</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" onclick="toggleSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label>Theme</label>
+                    <select onchange="changeTheme(this.value)">
+                        <option value="light">Light</option>
+                        <option value="dark" selected>Dark</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>API Endpoint</label>
+                    <input type="text" id="apiEndpoint" placeholder="Auto-detected">
+                </div>
+                <div class="setting-item">
+                    <label>Phone Number (for account lookup)</label>
+                    <input type="text" id="userPhone" placeholder="+8801XXXXXXXXX">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript files in correct order -->
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/chatManager.js"></script>
+    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

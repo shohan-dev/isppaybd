@@ -236,6 +236,6 @@ Built with ❤️ for Shohan Bro
 uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 
 direct run 
-cd uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+cd "/Users/bluebayit/Documents/GitHub/isppaybd/AI Chatbot" && python3 -m uvicorn app.main:app --reload
 
 **Happy Coding! 🚀**

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Test - AI Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #6366F1;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #6366F1;
+        }
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .test-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .test-item strong {
+            color: #6366F1;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .test-item p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status.success {
+            background: #10B981;
+            color: white;
+        }
+        .status.pending {
+            background: #F59E0B;
+            color: white;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #6366F1;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .button:hover {
+            background: #4F46E5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .checklist {
+            list-style: none;
+        }
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 AI Chatbot - Feature Test Guide</h1>
+        <p class="subtitle">All improvements are complete! Follow these tests to verify everything works perfectly.</p>
+
+        <div class="section">
+            <h2>📋 Pre-Testing Checklist</h2>
+            <ul class="checklist">
+                <li>Server is running on port 8001</li>
+                <li>OpenAI API key added to .env file</li>
+                <li>Browser cache cleared (or use incognito mode)</li>
+                <li>LocalStorage cleared for fresh start</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 1: Off-Topic Detection <span class="status success">NEW</span></h2>
+            <div class="test-item">
+                <strong>Test Messages:</strong>
+                <p>1. Type: "What's the weather today?"</p>
+                <p>2. Type: "Tell me a joke"</p>
+                <p>3. Type: "How are you?"</p>
+                <p><strong>Expected:</strong> AI should redirect you to ISP topics with a helpful message listing available services.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 2: Rich Message Formatting <span class="status success">NEW</span></h2>
+            <div class="test-item">
+                <strong>Test Message:</strong>
+                <p>Type: "My internet is not working"</p>
+                <p><strong>Expected:</strong> Response should have:
+                <br>• Bullet points formatted nicely
+                <br>• Numbered steps (1. 2. 3.)
+                <br>• No "Thought:" or "Action:" markers
+                <br>• Clean, professional text</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 3: New Chat Functionality <span class="status success">FIXED</span></h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Send a message in current chat</p>
+                <p>2. Click "New Chat" button (+ icon)</p>
+                <p>3. Check sidebar for previous chat</p>
+                <p>4. Send message in new chat</p>
+                <p><strong>Expected:</strong> Old chat saves automatically, welcome screen appears, sidebar updates.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 4: Chat History Loading <span class="status success">FIXED</span></h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Create 2-3 different chats with messages</p>
+                <p>2. Click on old chat in sidebar</p>
+                <p>3. Verify all messages load correctly</p>
+                <p>4. Check formatting is preserved</p>
+                <p><strong>Expected:</strong> Messages appear instantly, formatting intact, active chat highlighted.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 5: Chat Deletion <span class="status success">FIXED</span></h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Hover over a chat in sidebar</p>
+                <p>2. Click trash icon that appears</p>
+                <p>3. Confirm deletion</p>
+                <p><strong>Expected:</strong> Confirmation dialog appears, chat deletes, new chat starts if needed.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 6: Quick Actions <span class="status success">ENHANCED</span></h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Start on welcome screen</p>
+                <p>2. Click any quick action button</p>
+                <p>3. Watch animation and transition</p>
+                <p><strong>Expected:</strong> Smooth hover effect, message sends automatically, welcome screen hides.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 7: Account Lookup Tool</h2>
+            <div class="test-item">
+                <strong>Test Messages:</strong>
+                <p>1. Type: "Check my account"</p>
+                <p>2. When asked, type: "01712345678"</p>
+                <p><strong>Expected:</strong> Bot fetches account info (mock data) and displays it cleanly.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 8: Connection Status Tool</h2>
+            <div class="test-item">
+                <strong>Test Messages:</strong>
+                <p>1. Type: "My internet is down"</p>
+                <p>2. Provide phone: "01712345678"</p>
+                <p><strong>Expected:</strong> Bot checks connection status and provides troubleshooting steps.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 9: Ticket Creation Tool</h2>
+            <div class="test-item">
+                <strong>Test Messages:</strong>
+                <p>1. Type: "I need technical support"</p>
+                <p>2. Follow prompts for phone and issue</p>
+                <p><strong>Expected:</strong> Bot creates ticket and shows ticket ID (e.g., TKT123456) styled nicely.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test 10: UI/UX Enhancements <span class="status success">PREMIUM</span></h2>
+            <div class="test-item">
+                <strong>Things to Check:</strong>
+                <p>✓ Messages fade in smoothly</p>
+                <p>✓ Hover effects on sidebar items</p>
+                <p>✓ Active chat has gradient background</p>
+                <p>✓ Delete button appears on hover</p>
+                <p>✓ Time stamps are readable (Just now, 5m ago)</p>
+                <p>✓ Typing indicator is visible</p>
+                <p>✓ Phone numbers and ticket IDs are highlighted</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📱 Mobile Testing</h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Open developer tools (F12)</p>
+                <p>2. Toggle device toolbar</p>
+                <p>3. Test on iPhone/Android sizes</p>
+                <p><strong>Expected:</strong> Everything scales properly, sidebar toggles, buttons are tappable.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎨 Theme Testing</h2>
+            <div class="test-item">
+                <strong>Steps:</strong>
+                <p>1. Click theme toggle icon in sidebar</p>
+                <p>2. Switch between dark and light modes</p>
+                <p><strong>Expected:</strong> Smooth transition, all colors change appropriately.</p>
+            </div>
+        </div>
+
+        <a href="http://localhost:8001" class="button">🚀 Open Chatbot & Start Testing</a>
+
+        <div style="margin-top: 40px; padding: 20px; background: #f0f9ff; border-radius: 12px; border-left: 4px solid #3B82F6;">
+            <h3 style="color: #1e40af; margin-bottom: 10px;">💡 Pro Tips</h3>
+            <ul style="color: #1e3a8a; line-height: 1.8; padding-left: 20px;">
+                <li>Check browser console for any errors (F12)</li>
+                <li>Test with different phone numbers (01712345678, 01923456789)</li>
+                <li>Try creating 5+ chats to test history limit</li>
+                <li>Test rapid-fire messages for stability</li>
+                <li>Clear LocalStorage to test fresh start: <code>localStorage.clear()</code></li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 20px; padding: 20px; background: #f0fdf4; border-radius: 12px; border-left: 4px solid #10B981;">
+            <h3 style="color: #065f46; margin-bottom: 10px;">✅ Success Criteria</h3>
+            <p style="color: #047857; line-height: 1.8;">
+                All tests pass = <strong>Production Ready!</strong> 🎉<br>
+                Any test fails = Check console logs and IMPROVEMENTS.md for troubleshooting.<br>
+                <br>
+                <strong>Remember:</strong> Add your OpenAI API key to .env before testing!
+            </p>
+        </div>
+    </div>
+</body>
+</html>
