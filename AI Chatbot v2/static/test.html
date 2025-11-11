@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Test - AI Chatbot</title>
+</head>
+<body>
+    <h1>Testing API Connection</h1>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            try {
+                // Test health endpoint
+                const health = await fetch('/health');
+                const healthData = await health.json();
+                result.textContent = 'Health Check: ' + JSON.stringify(healthData, null, 2);
+                
+                // Test chat endpoint
+                const chat = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        message: 'Hello',
+                        history: []
+                    })
+                });
+                const chatData = await chat.json();
+                result.textContent += '\n\nChat Response: ' + JSON.stringify(chatData, null, 2);
+                
+            } catch (error) {
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

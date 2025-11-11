@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Final Test - User-Friendly Responses</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #6366F1;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .badge {
+            background: #10B981;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .box {
+            padding: 25px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .box.before {
+            background: #fee;
+            border: 2px solid #ef4444;
+        }
+        .box.after {
+            background: #efe;
+            border: 2px solid #10B981;
+        }
+        .box h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .box.before h3 { color: #ef4444; }
+        .box.after h3 { color: #10B981; }
+        .message {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ddd;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .message.user {
+            background: #e0e7ff;
+            border-left-color: #6366F1;
+        }
+        .message.bot {
+            background: #f0f9ff;
+            border-left-color: #0ea5e9;
+        }
+        .label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .highlight h2 {
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+        .test-btn {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s;
+        }
+        .test-btn:hover {
+            background: #4F46E5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .test-btn.secondary {
+            background: #10B981;
+        }
+        .test-btn.secondary:hover {
+            background: #059669;
+        }
+        .console {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .console .cyan { color: #22d3ee; }
+        .console .yellow { color: #fbbf24; }
+        .console .blue { color: #60a5fa; }
+        .console .green { color: #4ade80; }
+        .console .magenta { color: #e879f9; }
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .steps li {
+            counter-increment: step-counter;
+            padding: 15px;
+            padding-left: 50px;
+            position: relative;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #6366F1;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            ✅ Final Fixes Verification
+            <span class="badge">USER-FRIENDLY</span>
+        </h1>
+        <p style="color: #666; margin-bottom: 30px;">
+            Compare the old unfriendly responses with the new warm, welcoming messages.
+        </p>
+
+        <!-- Comparison 1: Off-Topic Response -->
+        <h2 style="margin-top: 30px; color: #333;">📝 Fix #1: Off-Topic Response</h2>
+        <div class="comparison">
+            <div class="box before">
+                <h3>❌ BEFORE (Unfriendly)</h3>
+                <div class="message user">
+                    <div class="label">User asks:</div>
+                    2+2
+                </div>
+                <div class="message bot">
+                    <div class="label">Bot responds:</div>
+                    I apologize, but I encountered an issue. Please try rephrasing your question about our ISP services.
+                </div>
+                <div style="margin-top: 15px; color: #ef4444; font-size: 13px;">
+                    <strong>Problems:</strong><br>
+                    • Sounds like a system error<br>
+                    • Not welcoming or friendly<br>
+                    • Robotic and formal<br>
+                    • Doesn't invite engagement
+                </div>
+            </div>
+
+            <div class="box after">
+                <h3>✅ AFTER (Friendly)</h3>
+                <div class="message user">
+                    <div class="label">User asks:</div>
+                    2+2
+                </div>
+                <div class="message bot">
+                    <div class="label">Bot responds:</div>
+                    Thanks for reaching out! 😊
+                    <br><br>
+                    I'm your ISP support assistant. I can help you with:
+                    <br><br>
+                    • Internet connection problems<br>
+                    • Checking your account status<br>
+                    • Speed and performance issues<br>
+                    • Router troubleshooting<br>
+                    • Billing questions<br>
+                    • Service upgrades
+                    <br><br>
+                    How can I help with your internet service today?
+                </div>
+                <div style="margin-top: 15px; color: #10B981; font-size: 13px;">
+                    <strong>Improvements:</strong><br>
+                    ✓ Friendly greeting with emoji<br>
+                    ✓ Clear service list<br>
+                    ✓ Welcoming tone<br>
+                    ✓ Invites engagement
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison 2: Account Tracking -->
+        <h2 style="margin-top: 30px; color: #333;">👤 Fix #2: Account Tracking Flow</h2>
+        <div class="comparison">
+            <div class="box before">
+                <h3>❌ BEFORE (Wrong Flow)</h3>
+                <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                    <div style="font-weight: 600; margin-bottom: 10px;">Frontend sends:</div>
+                    <code style="background: #f3f4f6; padding: 8px; display: block; border-radius: 4px;">
+                        account_id: "01712345678"
+                    </code>
+                    <div style="margin-top: 10px; font-size: 13px; color: #666;">
+                        ❌ This is actually a PHONE, not account_id!
+                    </div>
+                </div>
+                <div class="console">
+                    <span class="cyan">[2025-11-11 15:06:31]</span> <span class="yellow">Account:01712345678</span> <span class="green">Msg:</span> 2+2 → I apologize...
+                    <br><br>
+                    <span style="color: #ef4444;">Problem: Phone displayed as account_id</span>
+                </div>
+            </div>
+
+            <div class="box after">
+                <h3>✅ AFTER (Correct Flow)</h3>
+                <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                    <div style="font-weight: 600; margin-bottom: 10px;">Frontend sends:</div>
+                    <code style="background: #f3f4f6; padding: 8px; display: block; border-radius: 4px;">
+                        phone_number: "01712345678"
+                    </code>
+                    <div style="margin-top: 10px; font-size: 13px; color: #10B981;">
+                        ✓ Backend looks up account_id from phone
+                    </div>
+                </div>
+                <div class="console">
+                    <span class="green">[Account Lookup]</span> Phone: +8801712345678 → Account: USR001
+                    <br>
+                    <span class="cyan">[2025-11-11 15:10:45]</span> <span class="yellow">Phone:01712345678</span> <span class="blue">Account:USR001</span> <span class="green">Msg:</span> My internet is down → I'll check...
+                    <br><br>
+                    <span style="color: #10B981;">✓ Clear: Phone + Actual account_id</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Instructions -->
+        <div class="highlight">
+            <h2>🧪 How to Test</h2>
+            
+            <h3 style="margin-top: 20px; margin-bottom: 10px; color: #1e40af;">Test 1: Friendly Off-Topic Response</h3>
+            <ol class="steps">
+                <li>Open the chatbot</li>
+                <li>Type: <code>2+2</code> or <code>What's the weather?</code></li>
+                <li>Send the message</li>
+                <li>Verify you get the friendly response with emoji 😊</li>
+            </ol>
+
+            <h3 style="margin-top: 20px; margin-bottom: 10px; color: #1e40af;">Test 2: Phone → Account Lookup</h3>
+            <ol class="steps">
+                <li>Click the settings icon (⚙️)</li>
+                <li>Enter phone number: <code>01712345678</code></li>
+                <li>Save settings</li>
+                <li>Type: <code>Check my internet</code></li>
+                <li>Check server terminal for:<br>
+                    <span class="console" style="display: inline-block; padding: 5px 10px; margin-top: 5px;">
+                        <span class="yellow">Phone:01712345678</span> <span class="blue">Account:USR001</span>
+                    </span>
+                </li>
+            </ol>
+
+            <div style="margin-top: 25px; text-align: center;">
+                <button class="test-btn" onclick="window.open('http://localhost:8001', '_blank')">
+                    🚀 Open Chatbot & Test Now
+                </button>
+                <button class="test-btn secondary" onclick="showTestMessage()">
+                    📝 Show Test Messages
+                </button>
+            </div>
+        </div>
+
+        <!-- Expected Results -->
+        <div style="background: #f0fdf4; padding: 25px; border-radius: 12px; margin-top: 30px; border-left: 4px solid #10B981;">
+            <h3 style="color: #065f46; margin-bottom: 15px;">✅ Expected Results</h3>
+            <div style="color: #047857; line-height: 1.8;">
+                <strong>Off-Topic Questions:</strong><br>
+                • Response starts with "Thanks for reaching out! 😊"<br>
+                • Shows clear bullet list of services<br>
+                • Ends with "How can I help with your internet service today?"<br>
+                • NO error-like messages<br>
+                <br>
+                <strong>Account Tracking:</strong><br>
+                • Server console shows <code style="background: #dcfce7; padding: 2px 6px; border-radius: 3px;">Phone:01712345678 Account:USR001</code><br>
+                • Both phone and account_id are visible<br>
+                • Account lookup happens automatically<br>
+                • Without phone, shows <code style="background: #dcfce7; padding: 2px 6px; border-radius: 3px;">Phone:anonymous Account:N/A</code>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div style="margin-top: 30px; padding: 30px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px;">
+            <h2 style="color: #1e40af; margin-bottom: 20px; text-align: center;">🎉 All Fixed!</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">😊</div>
+                    <div style="font-weight: 600; color: #047857;">Friendly Responses</div>
+                    <div style="font-size: 13px; color: #666; margin-top: 5px;">Warm & welcoming</div>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">📞</div>
+                    <div style="font-weight: 600; color: #047857;">Correct Tracking</div>
+                    <div style="font-size: 13px; color: #666; margin-top: 5px;">Phone → Account ID</div>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">🚀</div>
+                    <div style="font-weight: 600; color: #047857;">Production Ready</div>
+                    <div style="font-size: 13px; color: #666; margin-top: 5px;">Perfect for users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTestMessage() {
+            const messages = [
+                "2+2",
+                "What's the weather?",
+                "Tell me a joke",
+                "Hello there",
+                "What's 5*5?"
+            ];
+            const random = messages[Math.floor(Math.random() * messages.length)];
+            alert(`📝 Test Messages:\n\nTry any of these off-topic questions:\n\n• ${messages.join('\n• ')}\n\nExample: "${random}"\n\nExpected: You should get a friendly response starting with "Thanks for reaching out! 😊"`);
+        }
+    </script>
+</body>
+</html>
