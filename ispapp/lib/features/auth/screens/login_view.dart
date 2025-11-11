@@ -118,7 +118,7 @@ class LoginView extends StatelessWidget {
                         controller: authController.emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email Address',
+                          labelText: 'Email/User ID',
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,
@@ -183,17 +183,14 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                         const Text('Remember me?'),
-                        // const Spacer(),
-                        // GestureDetector(
-                        //   onTap: authController.forgotPassword,
-                        //   child: const Text(
-                        //     'Forgot Password?',
-                        //     style: TextStyle(
-                        //       color: Color(0xFF4A90E2),
-                        //       decoration: TextDecoration.underline,
-                        //     ),
-                        //   ),
-                        // ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: authController.forgotPassword,
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(color: Color(0xFF4A90E2)),
+                          ),
+                        ),
                       ],
                     ),
 

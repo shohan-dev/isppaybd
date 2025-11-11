@@ -49,8 +49,6 @@ class HomeController extends GetxController {
     errorMessage.value = '';
 
     try {
-      print('🚀 Loading dashboard data for user: ${userId}');
-
       if (userId == null) {
         errorMessage.value = 'User ID not found. Please login again.';
         Get.snackbar('Error', 'User ID not found. Please login again.');
@@ -343,21 +341,30 @@ class HomeController extends GetxController {
     // Initialize chart data with empty values
     realTimeChartData.clear();
 
-    // Start fetching data with production-ready timer
-    _trafficTimer = Timer.periodic(fetchInterval, (timer) async {
-      if (!isRealTimeActive.value) {
-        timer.cancel();
-        return;
-      }
+    // Add a 2-second delay before starting the timer
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!isRealTimeActive.value) return; // Check if still active
 
-      // Stop monitoring if too many errors
-      if (trafficErrorCount.value >= maxErrorCount) {
-        print('⚠️ Stopping real-time monitoring due to excessive errors');
-        _stopRealTimeTrafficMonitoring();
-        return;
-      }
+      print(
+        '⏰ Starting periodic traffic data fetch (every ${fetchInterval.inSeconds}s)',
+      );
 
-      await _fetchRealTimeTrafficData();
+      // Start fetching data with production-ready timer
+      _trafficTimer = Timer.periodic(fetchInterval, (timer) async {
+        if (!isRealTimeActive.value) {
+          timer.cancel();
+          return;
+        }
+
+        // Stop monitoring if too many errors
+        if (trafficErrorCount.value >= maxErrorCount) {
+          print('⚠️ Stopping real-time monitoring due to excessive errors');
+          _stopRealTimeTrafficMonitoring();
+          return;
+        }
+
+        await _fetchRealTimeTrafficData();
+      });
     });
   }
 
@@ -461,10 +468,6 @@ class HomeController extends GetxController {
 
           // Update dashboard stats efficiently (avoid unnecessary rebuilds)
           _updateDashboardStatsWithRealTimeData();
-
-          print(
-            '📈 Traffic: ↑${trafficData.uploadSpeed.toStringAsFixed(2)} ↓${trafficData.downloadSpeed.toStringAsFixed(2)} Mbps',
-          );
         }
       } else {
         // API failed - DON'T update last success time

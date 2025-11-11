@@ -12,6 +12,7 @@ class BottomNavBar extends StatelessWidget {
   static const _navItems = [
     _NavigationItem(Icons.home, "Home"),
     _NavigationItem(Icons.network_ping, "Ping"),
+    _NavigationItem(Icons.speed, "Speed Test"),
     _NavigationItem(Icons.payment, "Payment History"),
   ];
 
