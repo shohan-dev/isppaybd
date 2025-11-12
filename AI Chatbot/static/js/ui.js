@@ -16,7 +16,8 @@ class UIController {
             sendBtn: document.getElementById('sendBtn'),
             chatHistory: document.getElementById('chatHistory'),
             typingIndicator: document.getElementById('typingIndicator'),
-            welcomeScreen: document.getElementById('welcomeScreen'),
+            // support both `welcomeScreen` and `welcome-screen` id variants
+            welcomeScreen: document.getElementById('welcomeScreen') || document.getElementById('welcome-screen'),
             sidebar: document.getElementById('sidebar'),
             settingsModal: document.getElementById('settingsModal')
         };
@@ -28,10 +29,14 @@ class UIController {
     addMessage(sender, text, timestamp = null) {
         const messagesContainer = this.elements.chatMessages;
         
-        // Hide welcome screen if visible
+        // Hide welcome screen if visible (support both id variants)
+        const welcome1 = document.getElementById('welcomeScreen');
+        const welcome2 = document.getElementById('welcome-screen');
         if (this.elements.welcomeScreen) {
             this.elements.welcomeScreen.style.display = 'none';
         }
+        if (welcome1) welcome1.style.display = 'none';
+        if (welcome2) welcome2.style.display = 'none';
 
         // Sanitize and format text
         const sanitizedText = this._sanitizeAndFormat(text);
@@ -70,18 +75,40 @@ class UIController {
      * Show typing indicator
      */
     showTyping() {
-        if (this.elements.typingIndicator) {
-            this.elements.typingIndicator.style.display = 'flex';
-            this.elements.typingIndicator.style.opacity = '0';
-            
-            // Fade in animation
+        // Render typing indicator as an inline bot message bubble so it appears in-flow
+        try {
+            const container = this.elements.chatMessages;
+            if (!container) return;
+
+            // Do not add multiple typing placeholders
+            if (container.querySelector('.message.bot.typing')) return;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot typing';
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble typing-bubble">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="message-time">${this._getCurrentTime()}</div>
+                </div>
+            `;
+
+            container.appendChild(messageDiv);
+            // slight delay before animation/scroll
             setTimeout(() => {
-                this.elements.typingIndicator.style.transition = 'opacity 0.3s ease';
-                this.elements.typingIndicator.style.opacity = '1';
-            }, 10);
-            
-            // Auto scroll to show typing indicator
-            this._scrollToBottom();
+                messageDiv.style.opacity = '1';
+                this._scrollToBottom();
+            }, 20);
+        } catch (e) {
+            // fallback: show existing typingIndicator block
+            if (this.elements.typingIndicator) this.elements.typingIndicator.style.display = 'flex';
         }
     }
 
@@ -89,10 +116,26 @@ class UIController {
      * Hide typing indicator
      */
     hideTyping() {
+        try {
+            const container = this.elements.chatMessages;
+            if (!container) return;
+
+            const typing = container.querySelector('.message.bot.typing');
+            if (typing) {
+                // smooth fade then remove
+                typing.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                typing.style.opacity = '0';
+                typing.style.transform = 'translateY(6px)';
+                setTimeout(() => typing.remove(), 220);
+                return;
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        // fallback: hide existing typingIndicator block
         if (this.elements.typingIndicator) {
-            // Fade out animation
             this.elements.typingIndicator.style.opacity = '0';
-            
             setTimeout(() => {
                 this.elements.typingIndicator.style.display = 'none';
             }, 300);

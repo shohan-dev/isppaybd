@@ -91,6 +91,17 @@ const CONFIG = {
             CONNECTING: 'Connecting to server...',
             NO_HISTORY: 'No chat history yet'
         }
+        ,
+        OFFTOPIC: `Hey there! 😊
+
+I'm your ISP support assistant. I can help you with:
+• Slow or not working internet
+• Checking connection status
+• Billing, plan, and payment info
+• Router or WiFi problems
+• Opening support tickets
+
+Tell me what's happening, and I'll take care of it! 💪`
     }
 };
 

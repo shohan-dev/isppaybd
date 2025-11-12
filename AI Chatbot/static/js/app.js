@@ -30,6 +30,69 @@ class ChatbotApp {
         
         // Focus input
         this.ui.focusInput();
+
+        // Auto-insert assistant welcome/off-topic message after short delay
+        // Avoid inserting if chat already has messages to prevent duplicates.
+        setTimeout(() => {
+            try {
+                const messagesContainer = this.ui.elements.chatMessages;
+                if (!messagesContainer) return;
+
+                // If there are any existing message bubbles, don't auto-insert
+                if (messagesContainer.querySelectorAll('.message').length > 0) return;
+
+                // Get message text from config (fallback to NO_HISTORY if missing)
+                const msgText = (this.config && this.config.MESSAGES && this.config.MESSAGES.OFFTOPIC)
+                    ? this.config.MESSAGES.OFFTOPIC
+                    : (this.config.MESSAGES.INFO.NO_HISTORY || 'Hello!');
+
+                // Hide any welcome screen variants (some files use different IDs)
+                const welcome1 = document.getElementById('welcome-screen');
+                const welcome2 = document.getElementById('welcomeScreen');
+                if (welcome1) welcome1.style.display = 'none';
+                if (welcome2) welcome2.style.display = 'none';
+
+                // Add bot message to UI as a regular message bubble (not absolutely positioned)
+                let addedEl = null;
+                if (this.ui && typeof this.ui.addMessage === 'function') {
+                    addedEl = this.ui.addMessage('bot', msgText);
+                } else {
+                    // Fallback: directly append using legacy function if present
+                    if (typeof addMessageToUI === 'function') addMessageToUI('bot', msgText);
+                }
+
+                // Add to chat history manager so it shows in saved chats
+                if (this.chatManager && typeof this.chatManager.addToHistory === 'function') {
+                    this.chatManager.addToHistory('Agent', msgText);
+                }
+
+                // Refresh sidebar chat history
+                this.updateChatHistoryUI();
+
+                // Ensure the chat scrolls to bottom so the greeting appears near the input
+                // Multiple attempts to ensure scroll happens after all layout/animations
+                const forceScrollBottom = () => {
+                    try {
+                        const container = document.getElementById('chatMessages');
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                };
+                
+                // Immediate scroll
+                forceScrollBottom();
+                // After animation
+                setTimeout(forceScrollBottom, 50);
+                // Final fallback
+                setTimeout(forceScrollBottom, 350);
+
+            } catch (err) {
+                console.warn('Auto-insert welcome message failed:', err);
+            }
+        }, 500); // 500ms delay
         
         console.log('✅ Chatbot initialized successfully');
     }
@@ -522,11 +585,23 @@ function addMessageToUI(sender, text) {
 }
 
 function showTypingIndicator() {
-    document.getElementById('typingIndicator').style.display = 'flex';
+    // Prefer UIController's inline typing bubble if app exists
+    if (typeof app !== 'undefined' && app && app.ui && typeof app.ui.showTyping === 'function') {
+        try { app.ui.showTyping(); return; } catch (e) { /* fallback */ }
+    }
+
+    const el = document.getElementById('typingIndicator');
+    if (el) el.style.display = 'flex';
 }
 
 function hideTypingIndicator() {
-    document.getElementById('typingIndicator').style.display = 'none';
+    // Prefer UIController's inline typing bubble if app exists
+    if (typeof app !== 'undefined' && app && app.ui && typeof app.ui.hideTyping === 'function') {
+        try { app.ui.hideTyping(); return; } catch (e) { /* fallback */ }
+    }
+
+    const el = document.getElementById('typingIndicator');
+    if (el) el.style.display = 'none';
 }
 
 // ==================== CHAT MANAGEMENT ====================
