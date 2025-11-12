@@ -3,10 +3,12 @@ Improved AI Agent for ISP Customer Support
 Production-Optimized, Faster, Cleaner, Safer
 """
 
-from typing import Optional
-from langchain.agents import initialize_agent, AgentType
+from typing import Optional, Dict, Any, List
 from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.tools import BaseTool
 import re
+import json
 
 from .prompts import SYSTEM_PROMPT
 from ..tools.user_tools import GetUserAccountTool
@@ -63,25 +65,17 @@ class SupportAgent:
             temperature=settings.TEMPERATURE,
             api_key=api_key or settings.OPENAI_API_KEY,
             max_tokens=settings.MAX_TOKENS,
-        )
-
-        self.tools = [
+        ).bind_tools([
             GetUserAccountTool,
             ConnectionStatusTool,
             OpenTicketTool,
-        ]
+        ])
 
-        # LangChain Agent Initialization
-        self.agent = initialize_agent(
-            tools=self.tools,
-            llm=self.model,
-            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-            verbose=settings.VERBOSE_MODE,
-            handle_parsing_errors=True,
-            max_iterations=settings.MAX_ITERATIONS,
-            early_stopping_method="generate",
-            agent_kwargs={"prefix": SYSTEM_PROMPT},
-        )
+        self.tools_map = {
+            "GetUserAccountTool": GetUserAccountTool,
+            "ConnectionStatusTool": ConnectionStatusTool,
+            "OpenTicketTool": OpenTicketTool,
+        }
 
         # Clean Off Topic Message
         self.off_topic_response = (
@@ -94,6 +88,26 @@ class SupportAgent:
             "• Opening support tickets\n\n"
             "Tell me what's happening, and I'll take care of it! 💪"
         )
+    
+    def _execute_tool(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
+        """Execute a tool and return its result."""
+        try:
+            tool = self.tools_map.get(tool_name)
+            if not tool:
+                return f"Tool {tool_name} not found"
+            return tool._run(**tool_input)
+        except Exception as e:
+            return f"Error executing {tool_name}: {str(e)}"
+    
+    async def _aexecute_tool(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
+        """Execute a tool asynchronously and return its result."""
+        try:
+            tool = self.tools_map.get(tool_name)
+            if not tool:
+                return f"Tool {tool_name} not found"
+            return await tool._arun(**tool_input)
+        except Exception as e:
+            return f"Error executing {tool_name}: {str(e)}"
 
     # ---------------------------------------------------------
     # Sync Run
@@ -108,8 +122,34 @@ class SupportAgent:
             if account_id:
                 message = f"[User Account ID: {account_id}]\n{message}"
 
-            # Run agent
-            return self.agent.run(message)
+            # Create messages
+            messages = [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=message)
+            ]
+            
+            # Run model with tools
+            max_iterations = settings.MAX_ITERATIONS
+            for iteration in range(max_iterations):
+                response = self.model.invoke(messages)
+                
+                # Check if model wants to use tools
+                if hasattr(response, 'tool_calls') and response.tool_calls:
+                    # Execute tools
+                    for tool_call in response.tool_calls:
+                        tool_name = tool_call.get('name', '')
+                        tool_input = tool_call.get('args', {})
+                        tool_result = self._execute_tool(tool_name, tool_input)
+                        
+                        # Add tool result to messages
+                        messages.append(response)
+                        messages.append(AIMessage(content=f"Tool {tool_name} result: {tool_result}"))
+                else:
+                    # No more tools to call, return final response
+                    return response.content
+            
+            # Max iterations reached
+            return self.off_topic_response
 
         except Exception as e:
             err = str(e).lower()
@@ -139,7 +179,34 @@ class SupportAgent:
             if account_id:
                 message = f"[User Account ID: {account_id}]\n{message}"
 
-            return await self.agent.arun(message)
+            # Create messages
+            messages = [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=message)
+            ]
+            
+            # Run model with tools
+            max_iterations = settings.MAX_ITERATIONS
+            for iteration in range(max_iterations):
+                response = await self.model.ainvoke(messages)
+                
+                # Check if model wants to use tools
+                if hasattr(response, 'tool_calls') and response.tool_calls:
+                    # Execute tools
+                    for tool_call in response.tool_calls:
+                        tool_name = tool_call.get('name', '')
+                        tool_input = tool_call.get('args', {})
+                        tool_result = await self._aexecute_tool(tool_name, tool_input)
+                        
+                        # Add tool result to messages
+                        messages.append(response)
+                        messages.append(AIMessage(content=f"Tool {tool_name} result: {tool_result}"))
+                else:
+                    # No more tools to call, return final response
+                    return response.content
+            
+            # Max iterations reached
+            return self.off_topic_response
 
         except Exception as e:
             err = str(e).lower()

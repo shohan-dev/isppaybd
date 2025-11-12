@@ -3,7 +3,7 @@ Support Ticket Tools
 Tools for creating and managing support tickets.
 """
 
-from langchain.tools import Tool
+from langchain_core.tools import tool
 from ..database import create_support_ticket
 
 
@@ -45,11 +45,10 @@ You can track your ticket status using the Ticket ID.
         return f"Error creating support ticket: {str(e)}"
 
 
-# Create the LangChain Tool
-OpenTicketTool = Tool.from_function(
-    name="OpenTicket",
-    func=open_support_ticket,
-    description="""
+# Create the LangChain Tool using decorator
+@tool
+def OpenTicketTool(issue_description: str) -> str:
+    """
     Use this tool to create a support ticket for issues that cannot be resolved immediately.
     Input should be a detailed description including:
     - User's phone number or account ID
@@ -64,5 +63,8 @@ OpenTicketTool = Tool.from_function(
     - Problem cannot be solved through agent
     - User explicitly requests to create a ticket
     - Complex issues requiring human intervention
+    
+    Args:
+        issue_description: Detailed description of the user's issue
     """
-)
+    return open_support_ticket(issue_description)

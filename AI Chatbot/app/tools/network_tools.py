@@ -3,7 +3,7 @@ Network Management Tools
 Tools for checking connection status and network diagnostics.
 """
 
-from langchain.tools import Tool
+from langchain_core.tools import tool
 from ..database import check_connection_status
 
 
@@ -51,11 +51,10 @@ Details:
         return f"Error checking connection status: {str(e)}"
 
 
-# Create the LangChain Tool
-ConnectionStatusTool = Tool.from_function(
-    name="ConnectionStatus",
-    func=fetch_connection_status,
-    description="""
+# Create the LangChain Tool using decorator
+@tool
+def ConnectionStatusTool(phone_or_account_id: str) -> str:
+    """
     Use this tool to check the internet connection status for a user.
     Input should be either a phone number or account ID.
     Returns detailed connection information including:
@@ -65,5 +64,8 @@ ConnectionStatusTool = Tool.from_function(
     - Speed metrics
     - Any detected network issues
     Use this when user reports connectivity problems or asks about their connection.
+    
+    Args:
+        phone_or_account_id: User's phone number or account ID
     """
-)
+    return fetch_connection_status(phone_or_account_id)

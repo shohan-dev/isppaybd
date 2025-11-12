@@ -5,7 +5,7 @@ Efficiently compresses conversation history to reduce token usage.
 
 from typing import List
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from .config import settings
 

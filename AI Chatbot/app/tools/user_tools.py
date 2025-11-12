@@ -3,7 +3,7 @@ User Management Tools
 Tools for fetching and managing user account information.
 """
 
-from langchain.tools import Tool
+from langchain_core.tools import tool
 from ..database import get_user_account
 
 
@@ -38,14 +38,16 @@ User Account Found:
         return f"Error fetching user account: {str(e)}"
 
 
-# Create the LangChain Tool
-GetUserAccountTool = Tool.from_function(
-    name="GetUserAccount",
-    func=fetch_user_account,
-    description="""
+# Create the LangChain Tool using decorator
+@tool
+def GetUserAccountTool(phone: str) -> str:
+    """
     Use this tool to fetch user account information using their phone number.
     Input should be a phone number in format: +880XXXXXXXXXX or 01XXXXXXXXX.
     Returns user details including name, plan, status, and balance.
     Use this when user asks about their account, balance, or plan details.
+    
+    Args:
+        phone: User's phone number (format: +880XXXXXXXXXX)
     """
-)
+    return fetch_user_account(phone)
