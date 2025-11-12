@@ -27,4 +27,7 @@ class AppApi {
   static const String supportTicketSendMessage =
       '${baseUrl}send_message?message=from api&current_user_id=806&ticket_id=20';
   static const String createTicket = '${baseUrl}create_ticket';
+
+  // ping test
+  static const String pingUser = '${baseUrl}pingUserApi';
 }
