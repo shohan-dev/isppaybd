@@ -41,56 +41,23 @@ class SplashScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // Logo Section with animation-ready container
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.overlay12,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.borderLight,
-                            width: 1,
+                      Padding(
+                        padding: const EdgeInsets.all(28.0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: AppColors.overlay12,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.borderLight,
+                              width: 1,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.overlay18,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.wifi_rounded,
-                                size: 48,
-                                color: AppColors.textWhite,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'ISP Broadband',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textWhite,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                // Text(
-                                //   'Network',
-                                //   style: TextStyle(
-                                //     fontSize: 20,
-                                //     fontWeight: FontWeight.w500,
-                                //     color: AppColors.textWhite70,
-                                //     letterSpacing: 0.5,
-                                //   ),
-                                // ),
-                              ],
-                            ),
-                          ],
+                          child: Image.asset(
+                            'assets/img/logo.png',
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),

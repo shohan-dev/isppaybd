@@ -32,47 +32,54 @@ class LoginView extends StatelessWidget {
                     bottomRight: Radius.circular(50),
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Welcome,',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w300,
-                        color: Colors.white,
-                      ),
-                    ),
+                    // Text(
+                    //   'Welcome',
+                    //   style: TextStyle(
+                    //     fontSize: 32,
+                    //     fontWeight: FontWeight.w300,
+                    //     color: Colors.white,
+                    //   ),
+                    // ),
                     SizedBox(height: 20),
                     // Logo Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.wifi, size: 40, color: Colors.white),
-                        SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ISP Broadband',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              'Network',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Icon(Icons.wifi, size: 40, color: Colors.white),
+                    //     SizedBox(width: 10),
+                    //     Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           'ISP Broadband',
+                    //           style: TextStyle(
+                    //             fontSize: 24,
+                    //             fontWeight: FontWeight.bold,
+                    //             color: Colors.white,
+                    //           ),
+                    //         ),
+                    //         Text(
+                    //           'Network',
+                    //           style: TextStyle(
+                    //             fontSize: 16,
+                    //             color: Colors.white70,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ],
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                      child: Image.asset(
+                        'assets/img/logo.png',
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    SizedBox(height: 10),
                     Text(
                       'CONNECTING YOU WITH NETWORK OF TRUST',
                       style: TextStyle(
