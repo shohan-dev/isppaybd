@@ -668,4 +668,6 @@ class HomeController extends GetxController {
       dashboardData.value?.paymentPending.toString() ?? '0';
   String get dynamicSupportTickets =>
       dashboardData.value?.totalSupportTicket.toString() ?? '0';
+
+  get newsList => dashboardStats.value?.recentNews ?? [];
 }

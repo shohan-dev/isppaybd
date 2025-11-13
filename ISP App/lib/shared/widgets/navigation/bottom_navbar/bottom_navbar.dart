@@ -26,24 +26,20 @@ class BottomNavBar extends StatelessWidget {
         key: _scaffoldKey,
         appBar: null,
         body: SafeArea(
-          bottom: false, // Handle bottom padding manually
-          child: Padding(
-            padding: EdgeInsets.only(bottom: bottomPadding),
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount:
-                  controller
-                      .pages
-                      .length, // Set item count to avoid excessive building
-              physics:
-                  const NeverScrollableScrollPhysics(), // Disable swipe to avoid conflicts
-              onPageChanged: (index) {
-                controller.currentIndex.value = index;
-              },
-              itemBuilder: (context, index) {
-                return controller.pages[index]; // Efficient page building
-              },
-            ),
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount:
+                controller
+                    .pages
+                    .length, // Set item count to avoid excessive building
+            physics:
+                const NeverScrollableScrollPhysics(), // Disable swipe to avoid conflicts
+            onPageChanged: (index) {
+              controller.currentIndex.value = index;
+            },
+            itemBuilder: (context, index) {
+              return controller.pages[index]; // Efficient page building
+            },
           ),
         ),
         bottomNavigationBar: _buildResponsiveBottomBar(context, bottomPadding),

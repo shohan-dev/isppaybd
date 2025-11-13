@@ -4,6 +4,7 @@ import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/screens/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/screens/widgets/realTimeChartPainter.dart';
+import 'package:ispapp/features/others/movie_server_screen.dart';
 import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
@@ -137,18 +138,18 @@ class HomeView extends StatelessWidget {
                     ],
                   ),
                 ),
-                // IconButton(
-                //   icon: const Icon(
-                //     Icons.notifications,
-                //     color: AppColors.textWhite,
-                //     size: 28,
-                //   ),
-                //   onPressed:
-                //       () => Get.snackbar(
-                //         'Info',
-                //         'Notifications feature coming soon!',
-                //       ),
-                // ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications,
+                    color: AppColors.textWhite,
+                    size: 28,
+                  ),
+                  onPressed:
+                      () => Get.snackbar(
+                        'Info',
+                        'Notifications feature coming soon!',
+                      ),
+                ),
                 IconButton(
                   icon: const Icon(
                     Icons.logout,
@@ -564,43 +565,50 @@ class HomeView extends StatelessWidget {
       child: Column(
         children: [
           // Usage cards row
-          // LayoutBuilder(
-          //   builder: (context, constraints) {
-          //     return Row(
-          //       children: [
-          //         Expanded(
-          //           child: _buildUsageCard(
-          //             icon: Icons.file_upload,
-          //             title: 'Upload',
-          //             value:
-          //                 '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
-          //             color: AppColors.uploadColor,
-          //           ),
-          //         ),
-          //         const SizedBox(width: 12),
-          //         Expanded(
-          //           child: _buildUsageCard(
-          //             icon: Icons.access_time,
-          //             title: 'Uptime',
-          //             value: homeController.getUptimeValue(),
-          //             color: AppColors.uptimeColor,
-          //           ),
-          //         ),
-          //         const SizedBox(width: 12),
-          //         Expanded(
-          //           child: _buildUsageCard(
-          //             icon: Icons.file_download,
-          //             title: 'Download',
-          //             value:
-          //                 '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
-          //             color: AppColors.downloadColor,
-          //           ),
-          //         ),
-          //       ],
-          //     );
-          //   },
-          // ),
-          // const SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildUsageCard(
+                      icon: Icons.file_upload,
+                      title: 'Upload',
+                      value:
+                          '${homeController.uploadUsed.toStringAsFixed(1)} Gb',
+                      color: AppColors.uploadColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: _buildUsageCard(
+                      icon: Icons.file_download,
+                      title: 'Download',
+                      value:
+                          '${homeController.downloadUsed.toStringAsFixed(1)} Gb',
+                      color: AppColors.downloadColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(MovieServerScreen());
+                      },
+                      child: _buildUsageCard(
+                        icon: Icons.movie_creation_outlined,
+                        title: 'Movie Server',
+                        value: '5',
+                        color: AppColors.downloadColor,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 20),
           _buildRealTimeTrafficChart(homeController),
           const SizedBox(height: 20),
           _buildPaymentChart(homeController),
@@ -835,6 +843,113 @@ class HomeView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildUsageCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildNewsSection(HomeController homeController) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowLight,
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Latest News',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: homeController.newsList.length,
+            itemBuilder: (context, index) {
+              final newsItem = homeController.newsList[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  '• $newsItem',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

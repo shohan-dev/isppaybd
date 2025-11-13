@@ -233,9 +233,13 @@ Built with ❤️ for Shohan Bro
 ---
 
 # run project command 
-uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 direct run 
-cd "/Users/bluebayit/Documents/GitHub/isppaybd/AI Chatbot" && python3 -m uvicorn app.main:app --reload
+# Windows
+python -m uvicorn app.main:app --reload
+
+# MAC
+python3 -m uvicorn app.main:app --reload
 
 **Happy Coding! 🚀**
