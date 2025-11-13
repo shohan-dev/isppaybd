@@ -580,7 +580,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
                         key: ValueKey(_currentTestType),
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.primary,
+                          color: AppColors.background,
                           fontWeight: FontWeight.w600,
                         ),
                       )

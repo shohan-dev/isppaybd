@@ -193,14 +193,31 @@ class HomeController extends GetxController {
   String _getConnectionStatus(String connStatus, String activity) {
     // Handle both "conn" and "disconn" status from API
     if (connStatus == 'conn' && activity == 'active') {
-      return 'Connected';
+      return 'Active';
     } else if (connStatus == 'conn' && activity == 'inactive') {
-      return 'Connected (Inactive)';
+      return 'Active (Inactive)';
     } else if (connStatus == 'disconn' || connStatus == 'disc') {
-      return 'Disconnected';
+      return 'Offline';
     } else {
       return 'Unknown';
     }
+  }
+
+  // Get status color for the indicator dot
+  Color getConnectionStatusColor() {
+    if (dashboardData.value != null) {
+      final connStatus = dashboardData.value!.details.connStatus;
+      final activity = dashboardData.value!.details.activity;
+
+      if (connStatus == 'conn' && activity == 'active') {
+        return Colors.green;
+      } else if (connStatus == 'conn' && activity == 'inactive') {
+        return Colors.orange;
+      } else if (connStatus == 'disconn' || connStatus == 'disc') {
+        return Colors.red;
+      }
+    }
+    return Colors.grey;
   }
 
   DashboardStats _generateDashboardStatsFromApi() {

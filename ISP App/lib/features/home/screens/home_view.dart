@@ -128,12 +128,42 @@ class HomeView extends StatelessWidget {
                           color: AppColors.textWhite70,
                         ),
                       ),
-                      Text(
-                        'Status : ${homeController.connectionStatus}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textWhite70,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Status : ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textWhite70,
+                            ),
+                          ),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: homeController.getConnectionStatusColor(),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: homeController
+                                      .getConnectionStatusColor()
+                                      .withOpacity(0.5),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            homeController.connectionStatus,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textWhite70,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
