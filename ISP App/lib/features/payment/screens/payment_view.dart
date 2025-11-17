@@ -353,6 +353,10 @@ class PaymentView extends StatelessWidget {
             );
             return;
           }
+          // If payment is successful, open the invoice in full webview
+          if (payment.isSuccessful) {
+            invoiceSection(payment, token);
+          }
         } catch (e) {
           // ignore errors and allow normal tap behavior
         }
@@ -635,5 +639,37 @@ class PaymentView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Open invoice in webview (no PDF conversion needed)
+  void invoiceSection(payment, token) async {
+    try {
+      final invoiceCandidate = payment.invoice?.toString() ?? '';
+      final invoiceId =
+          (invoiceCandidate.isNotEmpty &&
+                  int.tryParse(invoiceCandidate) != null)
+              ? invoiceCandidate
+              : payment.id.toString();
+
+      final invoiceUrl = '${AppApi.baseUrl}invoice_print?invoice_id=$invoiceId';
+
+      // Open invoice in full-screen webview
+      Get.to(
+        () => PaymentWebViewScreen(
+          url: invoiceUrl,
+          title: 'Invoice',
+          token: token ?? '',
+        ),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Unable to open invoice: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 }

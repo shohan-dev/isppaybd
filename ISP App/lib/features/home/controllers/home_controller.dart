@@ -89,6 +89,9 @@ class HomeController extends GetxController {
         // Start real-time traffic monitoring
         _startRealTimeTrafficMonitoring();
 
+        // Load user rx/tx usage (MB -> convert to GB)
+        await _loadUserUsage();
+
         print('✅ Dashboard data loaded successfully');
       } else {
         errorMessage.value = 'Failed to load dashboard data';
@@ -330,14 +333,18 @@ class HomeController extends GetxController {
     return packageName ?? 'N/A';
   }
 
+  // Observables to store usage in GB
+  final RxDouble _uploadUsedGb = 0.0.obs;
+  final RxDouble _downloadUsedGb = 0.0.obs;
+
   double get uploadUsed {
-    // Usage data not yet available from API
-    return 0.0;
+    // Return upload used in GB
+    return _uploadUsedGb.value;
   }
 
   double get downloadUsed {
-    // Usage data not yet available from API
-    return 0.0;
+    // Return download used in GB
+    return _downloadUsedGb.value;
   }
 
   // Real-time traffic monitoring methods
@@ -505,6 +512,41 @@ class HomeController extends GetxController {
       }
     } finally {
       isTrafficLoading.value = false;
+    }
+  }
+
+  /// Load user rx/tx usage from API and convert MB -> GB
+  Future<void> _loadUserUsage() async {
+    try {
+      final uid = userId?.toString() ?? dashboardData.value?.details.id;
+      if (uid == null || uid.toString().isEmpty) {
+        print('🔍 _loadUserUsage: user id missing');
+        return;
+      }
+
+      final response = await ApiService.instance.get<Map<String, dynamic>>(
+        AppApi.getUserDataUsage,
+        queryParameters: {'user_id': uid.toString()},
+        mapper: (data) => data as Map<String, dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        final rx = (data['rx_mb'] as num?)?.toDouble() ?? 0.0;
+        final tx = (data['tx_mb'] as num?)?.toDouble() ?? 0.0;
+
+        // Convert MB to GB (1 GB = 1024 MB)
+        _downloadUsedGb.value = tx / 1024.0;
+        _uploadUsedGb.value = rx / 1024.0;
+
+        print(
+          '📥 Usage loaded: download ${_downloadUsedGb.value} GB, upload ${_uploadUsedGb.value} GB',
+        );
+      } else {
+        print('❌ Failed to load user usage: ${response.message}');
+      }
+    } catch (e) {
+      print('⚠️ Error loading user usage: $e');
     }
   }
 

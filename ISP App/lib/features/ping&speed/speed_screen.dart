@@ -229,7 +229,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
         // Calculate final speed for this test
         final elapsedSeconds = stopwatch.elapsedMilliseconds / 1000;
         if (elapsedSeconds > 0 && totalBytes > 0) {
-          final speedMbps = (totalBytes * 8 / 1000000) / elapsedSeconds;
+          final speedMbps = (totalBytes * 1000000) / elapsedSeconds;
           if (speedMbps > 0 && speedMbps < 1000) {
             _downloadSpeeds.add(speedMbps);
           }
@@ -287,8 +287,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
 
               if (timeInterval > 0) {
                 // Speed in Mbps = (bytes * 8 / 1,000,000) / seconds
-                final speedMbps =
-                    (bytesInInterval * 8 / 1000000) / timeInterval;
+                final speedMbps = (bytesInInterval * 1000000) / timeInterval;
 
                 if (speedMbps > 0 && speedMbps < 1000) {
                   _uploadSpeeds.add(speedMbps);

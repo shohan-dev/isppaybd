@@ -30,4 +30,6 @@ class AppApi {
 
   // ping test
   static const String pingUser = '${baseUrl}pingUserApi';
+  // user data usage
+  static const String getUserDataUsage = '${baseUrl}get_user_data_usage';
 }

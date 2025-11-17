@@ -52,6 +52,8 @@ dependencies:
   # webview_flutter_android: ^3.16.0
   # webview_flutter_wkwebview: ^3.13.0
   # webview_cookie_manager: ^2.0.6
+  printing: ^5.11.0
+  pdf: ^3.10.1
 
 dev_dependencies:
   flutter_test:
