@@ -22,7 +22,9 @@ class Settings(BaseSettings):
     """
     
     # API Keys
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    # Provider selection: 'openai' or 'gemini' (default attempts to infer)
+    PROVIDER: str = os.getenv("PROVIDER", "gemini")
     
     # Model Configuration
     MODEL_NAME: str = os.getenv("MODEL_NAME", "gpt-4o-mini")
@@ -78,9 +80,11 @@ def validate_settings() -> bool:
     Returns:
         True if settings are valid, raises ValueError otherwise
     """
-    if not settings.OPENAI_API_KEY:
+    # Accept either OpenAI key, Gemini key, or Google ADC via GOOGLE_APPLICATION_CREDENTIALS
+    google_adc = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+    if not (settings.GEMINI_API_KEY or google_adc):
         raise ValueError(
-            "OPENAI_API_KEY is not set. Please set it in your .env file or environment variables."
+            "No model API credentials configured. Set OPENAI_API_KEY or GEMINI_API_KEY, or configure GOOGLE_APPLICATION_CREDENTIALS."
         )
     
     if settings.TEMPERATURE < 0 or settings.TEMPERATURE > 1:

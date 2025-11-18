@@ -3,6 +3,8 @@ class UIController {
     constructor(config) {
         this.config = config;
         this.elements = {};
+        // Track whether the user manually scrolled up (suspend auto-scroll)
+        this._userScrolled = false;
         this.initializeElements();
     }
 
@@ -21,6 +23,19 @@ class UIController {
             sidebar: document.getElementById('sidebar'),
             settingsModal: document.getElementById('settingsModal')
         };
+        // Listen for user scrolls to suspend auto-scroll behavior
+        try {
+            const container = this.elements.chatMessages;
+            if (container) {
+                container.addEventListener('scroll', () => {
+                    const distanceFromBottom = container.scrollHeight - container.clientHeight - container.scrollTop;
+                    // If user scrolled more than 120px away from bottom, consider them "reading" older messages
+                    this._userScrolled = distanceFromBottom > 120;
+                }, { passive: true });
+            }
+        } catch (e) {
+            // ignore
+        }
     }
 
     /**
@@ -65,7 +80,8 @@ class UIController {
         }, 10);
         
         if (this.config.CHAT.AUTO_SCROLL) {
-            this._scrollToBottom();
+            // Only auto-scroll if the user hasn't scrolled up
+            if (!this._userScrolled) this._scrollToBottom();
         }
 
         return messageDiv;
@@ -279,9 +295,16 @@ class UIController {
     /**
      * Scroll to bottom of messages
      */
-    _scrollToBottom() {
-        if (this.elements.chatMessages) {
+    _scrollToBottom(force = false) {
+        try {
+            if (!this.elements.chatMessages) return;
+            // If the user has scrolled up and no force flag provided, do not auto-scroll
+            if (this._userScrolled && !force) return;
             this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+            // Reset userScrolled if we've programmatically brought them to bottom
+            if (force) this._userScrolled = false;
+        } catch (e) {
+            // ignore
         }
     }
 

@@ -6,7 +6,7 @@ Run this after starting the server to test functionality.
 import requests
 import json
 
-BASE_URL = "http://localhost:8001"
+BASE_URL = "http://localhost:8000"
 
 
 def test_health():
@@ -25,7 +25,7 @@ def test_chat_simple():
         "message": "Hello, can you help me?",
         "history": []
     }
-    response = requests.post(f"{BASE_URL}/chat", json= )
+    response = requests.post(f"{BASE_URL}/chat", json=payload)
     print(f"✅ Status: {response.status_code}")
     print(f"💬 Reply: {response.json()['reply']}")
     print()

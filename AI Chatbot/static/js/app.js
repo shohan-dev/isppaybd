@@ -552,6 +552,11 @@ function sendQuickMessage(message) {
 }
 
 function addMessageToUI(sender, text) {
+    // Prefer UIController if available to ensure consistent rendering and scroll behavior
+    if (typeof app !== 'undefined' && app && app.ui && typeof app.ui.addMessage === 'function') {
+        try { app.ui.addMessage(sender, text); return; } catch (e) { /* fallback */ }
+    }
+
     const chatMessages = document.getElementById('chatMessages');
     
     const messageDiv = document.createElement('div');
@@ -579,9 +584,17 @@ function addMessageToUI(sender, text) {
     messageDiv.appendChild(content);
     
     chatMessages.appendChild(messageDiv);
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Only auto-scroll if user is near bottom (within 120px)
+    try {
+        const distanceFromBottom = chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop;
+        if (distanceFromBottom < 120) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    } catch (e) {
+        // fallback: always scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 }
 
 function showTypingIndicator() {

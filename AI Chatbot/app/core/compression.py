@@ -4,10 +4,10 @@ Efficiently compresses conversation history to reduce token usage.
 """
 
 from typing import List
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from .config import settings
+from ..agent.gemini_adapter import GeminiChatAdapter
 
 
 class ContextCompressor:
@@ -28,10 +28,9 @@ class ContextCompressor:
         Args:
             model_name: LLM model to use for compression (default: from settings)
         """
-        self.model = ChatOpenAI(
-            model=model_name or settings.COMPRESSION_MODEL,
+        self.model = GeminiChatAdapter(
+            model=model_name or settings.MODEL_NAME,
             temperature=0,
-            api_key=settings.OPENAI_API_KEY,
             max_tokens=200  # Keep compression output short
         )
 
@@ -61,7 +60,7 @@ Context:
 Compressed Summary:"""
         
         try:
-            response = self.model([HumanMessage(content=prompt)])
+            response = self.model.invoke([HumanMessage(content=prompt)])
             compressed = response.content.strip()
             
             # Remove any greeting or unnecessary phrases

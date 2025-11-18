@@ -26,12 +26,22 @@ def sanitize_agent_response(text: str) -> str:
     Clean and sanitize AI response for better UX.
     Removes internal reasoning, robotic phrases, and formats nicely.
     """
+    # Ensure text is a string
+    if not isinstance(text, str):
+        try:
+            text = str(text)
+        except Exception:
+            text = ''
+
     # Remove chain-of-thought markers
     text = re.sub(r'(Thought|Observation|Action|Action Input|Final Answer):.*?\n', '', text, flags=re.IGNORECASE | re.MULTILINE)
-    
-    # Remove internal reasoning patterns
+
+    # Remove internal reasoning patterns (brackets / inline JSON)
     text = re.sub(r'\[.*?\]', '', text)
-    text = re.sub(r'\{.*?\}', '', text)
+    # Remove JSON-like objects on their own line
+    text = re.sub(r'(?m)^\s*\{.*\}\s*$', '', text)
+    # Remove inline curly-brace blobs conservatively
+    text = re.sub(r'\{[^\}]{1,2000}\}', '', text)
     
     # Remove robotic/AI phrases
     robotic_patterns = [
@@ -53,6 +63,18 @@ def sanitize_agent_response(text: str) -> str:
     
     # Remove empty bullet points
     text = re.sub(r'^\s*[-*]\s*$', '', text, flags=re.MULTILINE)
+
+    # Remove explicit tool-result lines (e.g., "Tool X result: {...}")
+    text = re.sub(r'(?im)^\s*Tool\b.*$', '', text)
+
+    # If the model returns a 'Final Answer:' block, try to extract it
+    try:
+        low = text.lower()
+        if 'final answer:' in low:
+            idx = low.rfind('final answer:')
+            text = text[idx + len('final answer:'):].strip()
+    except Exception:
+        pass
     
     return text.strip()
 
@@ -298,6 +320,24 @@ async def startup_event():
     """
     Run on application startup.
     """
+    # Attempt to configure Google Generative AI if GEMINI_API_KEY or ADC present
+    try:
+        if getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+            try:
+                import google.generativeai as genai  # type: ignore
+                if getattr(settings, "GEMINI_API_KEY", ""):
+                    try:
+                        genai.configure(api_key=settings.GEMINI_API_KEY)
+                    except Exception:
+                        # ADC may be used instead of API key
+                        pass
+            except Exception:
+                # Not critical if the package isn't installed in this environment
+                pass
+
+    except Exception:
+        pass
+
     print("🚀 AI Support Agent API starting...")
     print(f"📊 Model: {settings.MODEL_NAME}")
     print(f"🔧 Environment: {'Development' if settings.VERBOSE_MODE else 'Production'}")

@@ -4,7 +4,7 @@ Production-Optimized, Faster, Cleaner, Safer
 """
 
 from typing import Optional, Dict, Any, List
-from langchain_openai import ChatOpenAI
+from .gemini_adapter import GeminiChatAdapter
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import BaseTool
 import re
@@ -60,10 +60,11 @@ class SupportAgent:
         """
         ISP AI Support Agent with tools + off-topic handling.
         """
-        self.model = ChatOpenAI(
+        # Use Gemini adapter (google-generativeai) instead of ChatOpenAI
+        self.model = GeminiChatAdapter(
             model=settings.MODEL_NAME,
             temperature=settings.TEMPERATURE,
-            api_key=api_key or settings.OPENAI_API_KEY,
+            api_key=api_key or settings.GEMINI_API_KEY,
             max_tokens=settings.MAX_TOKENS,
         ).bind_tools([
             GetUserAccountTool,
@@ -142,17 +143,20 @@ class SupportAgent:
                         tool_result = self._execute_tool(tool_name, tool_input)
                         
                         # Add tool result to messages
-                        messages.append(response)
-                        messages.append(AIMessage(content=f"Tool {tool_name} result: {tool_result}"))
+                        assistant_text = getattr(response, 'content', '') or f"Using {tool_name}"
+                        if assistant_text:
+                            messages.append(AIMessage(content=assistant_text))
+                        messages.append(HumanMessage(content=f"The {tool_name} returned: {tool_result}. Based on this information, provide a helpful response to the user."))
                 else:
                     # No more tools to call, return final response
-                    return response.content
+                    return response.content if response.content else "I'm here to help! What can I do for you?"
             
             # Max iterations reached
             return self.off_topic_response
 
         except Exception as e:
             err = str(e).lower()
+            print(f"[AGENT ERROR] {type(e).__name__}: {e}")
 
             # Iteration limit → treat as off-topic
             if "iteration" in err or "limit" in err:
@@ -165,7 +169,7 @@ class SupportAgent:
                 "• Slow/No connection?\n"
                 "• Billing or account issues?\n"
                 "• Router or WiFi problem?\n\n"
-                "I’ll fix it for you! 💡"
+                "I'll fix it for you! 💡"
             )
 
     # ---------------------------------------------------------
@@ -199,17 +203,20 @@ class SupportAgent:
                         tool_result = await self._aexecute_tool(tool_name, tool_input)
                         
                         # Add tool result to messages
-                        messages.append(response)
-                        messages.append(AIMessage(content=f"Tool {tool_name} result: {tool_result}"))
+                        assistant_text = getattr(response, 'content', '') or f"Using {tool_name}"
+                        if assistant_text:
+                            messages.append(AIMessage(content=assistant_text))
+                        messages.append(HumanMessage(content=f"The {tool_name} returned: {tool_result}. Based on this information, provide a helpful response to the user."))
                 else:
                     # No more tools to call, return final response
-                    return response.content
+                    return response.content if response.content else "I'm here to help! What can I do for you?"
             
             # Max iterations reached
             return self.off_topic_response
 
         except Exception as e:
             err = str(e).lower()
+            print(f"[AGENT ERROR ASYNC] {type(e).__name__}: {e}")
 
             if "iteration" in err or "limit" in err:
                 return self.off_topic_response
