@@ -30,8 +30,8 @@ if [ ! -f ".env" ]; then
     echo "⚠️  .env file not found!"
     echo "Creating template .env file..."
     cat > .env << EOF
-# OpenAI Configuration
-OPENAI_API_KEY=your_openai_api_key_here
+# Google Gemini Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Model Configuration
 MODEL_NAME=gpt-4o-mini
@@ -44,7 +44,7 @@ VERBOSE_MODE=false
 
 # Context Compression
 COMPRESSION_THRESHOLD=5
-COMPRESSION_MODEL=gpt-4o-mini
+COMPRESSION_MODEL=gemini-2.5-flash
 
 # Server Configuration
 HOST=0.0.0.0
@@ -54,7 +54,7 @@ PORT=8000
 RATE_LIMIT_PER_MINUTE=60
 EOF
     echo "✅ Template .env file created."
-    echo "⚠️  Please edit .env and add your OPENAI_API_KEY"
+    echo "⚠️  Please edit .env and add your GEMINI_API_KEY"
     echo ""
     read -p "Press Enter after updating .env file..."
 fi

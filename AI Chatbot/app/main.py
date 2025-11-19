@@ -220,19 +220,19 @@ async def chat(request: ChatRequest):
                     print(f"[Account Lookup Failed] {e}")
         
         # Step 1: Smart compression of conversation history
-        if request.history and len(request.history) >= settings.COMPRESSION_THRESHOLD:
-            compressed = compressor.smart_compress(request.history, request.message)
-            final_input = compressed
-        elif request.history:
-            # Keep recent history without compression
-            recent_context = "\n".join(request.history[-3:])  # Last 3 messages
-            final_input = f"{recent_context}\n\nUser: {request.message}"
-        else:
-            # First message - no history
-            final_input = request.message
+        history_for_agent = list(request.history) if request.history else []
+        compressed_summary = None
+        if history_for_agent and len(history_for_agent) >= settings.COMPRESSION_THRESHOLD:
+            compressed_summary = compressor.smart_compress(history_for_agent, request.message)
+            history_for_agent = history_for_agent[-4:]
         
         # Step 2: Run agent with processed input and account_id
-        agent_response = await agent.arun(final_input, account_id=account_id)
+        agent_response = await agent.arun(
+            request.message,
+            history=history_for_agent,
+            account_id=account_id,
+            summary=compressed_summary,
+        )
         
         # Step 2.5: Sanitize the response
         clean_response = sanitize_agent_response(agent_response)
@@ -251,7 +251,7 @@ async def chat(request: ChatRequest):
         # Step 3: Return response
         return ChatResponse(
             reply=clean_response,
-            compressed_context=compressed if request.history and len(request.history) >= settings.COMPRESSION_THRESHOLD else None
+            compressed_context=compressed_summary,
         )
         
     except Exception as e:
@@ -284,25 +284,26 @@ def chat_sync(request: ChatRequest):
                 if settings.VERBOSE_MODE:
                     print(f"[Account Lookup Failed] {e}")
         
-        # Process history
-        if request.history and len(request.history) >= settings.COMPRESSION_THRESHOLD:
-            compressed = compressor.smart_compress(request.history, request.message)
-            final_input = compressed
-        elif request.history:
-            recent_context = "\n".join(request.history[-3:])
-            final_input = f"{recent_context}\n\nUser: {request.message}"
-        else:
-            final_input = request.message
+        history_for_agent = list(request.history) if request.history else []
+        compressed_summary = None
+        if history_for_agent and len(history_for_agent) >= settings.COMPRESSION_THRESHOLD:
+            compressed_summary = compressor.smart_compress(history_for_agent, request.message)
+            history_for_agent = history_for_agent[-4:]
         
         # Run agent (synchronous)
-        agent_response = agent.run(final_input, account_id=account_id)
+        agent_response = agent.run(
+            request.message,
+            history=history_for_agent,
+            account_id=account_id,
+            summary=compressed_summary,
+        )
         
         # Sanitize response
         clean_response = sanitize_agent_response(agent_response)
         
         return ChatResponse(
             reply=clean_response,
-            compressed_context=compressed if request.history and len(request.history) >= settings.COMPRESSION_THRESHOLD else None
+            compressed_context=compressed_summary,
         )
         
     except Exception as e:

@@ -11,7 +11,7 @@ This adapter uses `google.generativeai` (google-generativeai) when available
 and falls back to a simple local echo if the package is not installed during development.
 """
 
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 import asyncio
 import os
 
@@ -33,7 +33,7 @@ class GeminiChatAdapter:
     def __init__(self, model: str = "gemini-2.5-flash", temperature: float = 0.0, api_key: Optional[str] = None, max_tokens: int = 1000):
         self.model = model
         self.temperature = temperature
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY", "")
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GEMINIUS_API_KEY", "")
         self.max_tokens = max_tokens
         self._tools = []
 
@@ -50,7 +50,7 @@ class GeminiChatAdapter:
         return self
 
     def _convert_messages(self, messages: List[Any]) -> List[dict]:
-        converted = []
+        converted: List[Dict[str, Any]] = []
         for m in messages:
             role = getattr(m, "type", None) or getattr(m, "role", None)
             content = getattr(m, "content", None)
@@ -65,7 +65,20 @@ class GeminiChatAdapter:
                     role = "assistant"
                 else:
                     role = "user"
-            converted.append({"role": role, "content": content})
+
+            role_normalized = str(role).lower()
+            if role_normalized in {"human", "user"}:
+                safe_role = "user"
+            elif role_normalized in {"assistant", "ai", "model"}:
+                safe_role = "assistant"
+            elif role_normalized == "system":
+                safe_role = "system"
+            elif role_normalized == "tool":
+                safe_role = "tool"
+            else:
+                safe_role = "user"
+
+            converted.append({"role": safe_role, "content": content})
         return converted
 
     def invoke(self, messages: List[Any]) -> ResponseShim:
@@ -74,33 +87,38 @@ class GeminiChatAdapter:
             print(f"[DEBUG] invoke() called with {len(messages)} messages, {len(self._tools)} tools")
             converted = self._convert_messages(messages)
             
-            if not _HAS_GENAI or not self.api_key:
+            if not _HAS_GENAI:
                 return ResponseShim(
                     content="I'm your ISP support assistant! How can I help with your internet today?",
                     tool_calls=[]
                 )
             
             # Separate system and chat messages
-            system_instruction = ""
+            system_instruction_parts: List[str] = []
             chat_history = []
             
             for msg in converted:
                 role = msg.get("role", "user")
-                content = msg.get("content", "")
+                content = (msg.get("content", "") or "").strip()
                 
                 if role == "system":
-                    system_instruction = content
+                    if content:
+                        system_instruction_parts.append(content)
                 elif role == "user":
                     chat_history.append({"role": "user", "parts": [content]})
-                elif role in ["assistant", "ai"]:
+                elif role == "assistant":
                     chat_history.append({"role": "model", "parts": [content]})
+                elif role == "tool":
+                    tool_text = content or "(empty tool output)"
+                    chat_history.append({"role": "user", "parts": [f"Tool result:\n{tool_text}"]})
+
+            system_instruction = "\n\n".join(system_instruction_parts)
             
             # Convert tools to Gemini function declarations using genai.protos types
             from google.ai import generativelanguage as glm
             
-            tools_list = None
+            tool_declarations = []
             if self._tools:
-                tools_list = []
                 for tool in self._tools:
                     # The tool is already an instance (StructuredTool from @tool decorator)
                     tool_name = tool.name if hasattr(tool, 'name') else tool.__class__.__name__
@@ -114,7 +132,8 @@ class GeminiChatAdapter:
                     
                     if hasattr(tool, 'args_schema') and tool.args_schema:
                         try:
-                            schema_dict = tool.args_schema.schema()
+                            schema_provider = getattr(tool.args_schema, "model_json_schema", None)
+                            schema_dict = schema_provider() if schema_provider else tool.args_schema.schema()
                             props = schema_dict.get('properties', {})
                             required_params = schema_dict.get('required', [])
                             
@@ -154,15 +173,20 @@ class GeminiChatAdapter:
                             required=required_params
                         )
                     )
-                    tools_list.append(func_decl)
-            
-            print(f"[DEBUG] Tools list: {[t.name for t in tools_list] if tools_list else 'None'}")
+                    tool_declarations.append(func_decl)
+
+            tools_list = [glm.Tool(function_declarations=tool_declarations)] if tool_declarations else None
+            if tools_list:
+                decl_names = [decl.name for decl in tool_declarations]
+                print(f"[DEBUG] Tools list: {decl_names}")
+            else:
+                print("[DEBUG] Tools list: None")
             
             # Create model with system instruction and tools
             model = genai.GenerativeModel(
                 self.model,
                 system_instruction=system_instruction if system_instruction else None,
-                tools=tools_list if tools_list else None
+                tools=tools_list
             )
             
             generation_config = {
@@ -189,11 +213,33 @@ class GeminiChatAdapter:
                         # Check for function calls
                         if hasattr(part, 'function_call'):
                             fc = part.function_call
+                            if not getattr(fc, 'name', None):
+                                print(f"[DEBUG] Function call without name: {fc}")
+                            raw_args: Dict[str, Any] = {}
+                            if hasattr(fc, 'args') and fc.args:
+                                try:
+                                    raw_args = dict(fc.args)
+                                except Exception:
+                                    raw_args = {}
+
+                            parsed_args: Dict[str, Any] = {}
+                            for key, value in raw_args.items():
+                                if hasattr(value, 'string_value'):
+                                    parsed_args[key] = value.string_value
+                                elif hasattr(value, 'number_value'):
+                                    parsed_args[key] = value.number_value
+                                elif hasattr(value, 'bool_value'):
+                                    parsed_args[key] = value.bool_value
+                                elif isinstance(value, (str, int, float, bool)):
+                                    parsed_args[key] = value
+                                else:
+                                    parsed_args[key] = str(value)
+
                             tool_calls.append({
                                 "name": fc.name,
-                                "args": dict(fc.args) if hasattr(fc, 'args') else {}
+                                "args": parsed_args
                             })
-                            print(f"[DEBUG] Tool call: {fc.name} with args {dict(fc.args) if hasattr(fc, 'args') else {}}")
+                            print(f"[DEBUG] Tool call: {fc.name} with args {parsed_args}")
                         # Check for text
                         elif hasattr(part, 'text'):
                             text += part.text

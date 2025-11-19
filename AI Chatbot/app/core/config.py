@@ -5,7 +5,7 @@ Centralized configuration for the AI Agent system.
 
 import os
 from typing import Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -13,21 +13,14 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    """
-    Application settings with environment variable support.
-    
-    Create a .env file in the project root with:
-    OPENAI_API_KEY=your_api_key_here
-    MODEL_NAME=gpt-4o-mini
-    """
-    
-    # API Keys
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    # Provider selection: 'openai' or 'gemini' (default attempts to infer)
-    PROVIDER: str = os.getenv("PROVIDER", "gemini")
+    """Central configuration with environment variable support."""
+
+    # Gemini / Google Generative AI credentials
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINIUS_API_KEY", "")
+    GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
     
     # Model Configuration
-    MODEL_NAME: str = os.getenv("MODEL_NAME", "gpt-4o-mini")
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "gemini-2.5-flash")
     TEMPERATURE: float = float(os.getenv("TEMPERATURE", "0.0"))
     MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "1000"))
     
@@ -37,7 +30,7 @@ class Settings(BaseSettings):
     
     # Context Compression
     COMPRESSION_THRESHOLD: int = int(os.getenv("COMPRESSION_THRESHOLD", "5"))
-    COMPRESSION_MODEL: str = os.getenv("COMPRESSION_MODEL", "gpt-4o-mini")
+    COMPRESSION_MODEL: str = os.getenv("COMPRESSION_MODEL", "gemini-2.5-flash")
     
     # API Configuration
     API_TITLE: str = "AI Support Agent API"
@@ -64,9 +57,11 @@ class Settings(BaseSettings):
     # Rate Limiting (for future implementation)
     RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="allow",
+    )
 
 
 # Create global settings instance
@@ -80,11 +75,10 @@ def validate_settings() -> bool:
     Returns:
         True if settings are valid, raises ValueError otherwise
     """
-    # Accept either OpenAI key, Gemini key, or Google ADC via GOOGLE_APPLICATION_CREDENTIALS
-    google_adc = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
-    if not (settings.GEMINI_API_KEY or google_adc):
+    # Require Gemini API key or Google ADC credentials
+    if not (settings.GEMINI_API_KEY or settings.GOOGLE_APPLICATION_CREDENTIALS):
         raise ValueError(
-            "No model API credentials configured. Set OPENAI_API_KEY or GEMINI_API_KEY, or configure GOOGLE_APPLICATION_CREDENTIALS."
+            "No model API credentials configured. Set GEMINI_API_KEY (or GEMINIUS_API_KEY) or configure GOOGLE_APPLICATION_CREDENTIALS."
         )
     
     if settings.TEMPERATURE < 0 or settings.TEMPERATURE > 1:
