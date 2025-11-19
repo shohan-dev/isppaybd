@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:ispapp/features/payment/screens/payment_view.dart';
-import 'package:ispapp/features/ping&speed/ping_screen.dart';
-import 'package:ispapp/features/ping&speed/speed_screen.dart';
+import 'package:ispapp/features/ping&speed/screen/ping_screen.dart';
+import 'package:ispapp/features/ping&speed/screen/speed/speed_screen.dart';
 import '../../../../features/home/screens/home_view.dart';
 
 class BottomNavBarController extends GetxController {

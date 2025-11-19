@@ -131,48 +131,113 @@ class _MovieServerScreenState extends State<MovieServerScreen> {
               );
             }
 
-            return ListView.separated(
+            // Grid view with 2 columns for better visual UX
+            return GridView.builder(
               padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.8,
+              ),
               itemCount: _servers.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final s = _servers[index];
-                return Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                return GestureDetector(
+                  onTap: () => _openUrl(s.url),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    title: Text(s.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    clipBehavior: Clip.hardEdge,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (s.details.isNotEmpty) Text(s.details),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 14,
-                              color: Colors.amber,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(s.rating),
-                            const SizedBox(width: 12),
-                            Text(s.createdAt),
-                          ],
+                        // Image header
+                        SizedBox(
+                          height: 110,
+                          child:
+                              s.image.isNotEmpty
+                                  ? Image.network(
+                                    "https://isppaybd.com/assets/movies/${s.image}",
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder:
+                                        (_, __, ___) => Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            size: 40,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                  )
+                                  : Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.movie,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                        ),
+
+                        // Content
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                s.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              if (s.details.isNotEmpty)
+                                Text(
+                                  s.details,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    size: 14,
+                                    color: Colors.amber,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    s.rating,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                s.createdAt,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.open_in_new),
-                      onPressed: () => _openUrl(s.url),
-                    ),
-                    onTap: () => _openUrl(s.url),
                   ),
                 );
               },
@@ -187,6 +252,7 @@ class _MovieServerScreenState extends State<MovieServerScreen> {
 class MovieServer {
   final String id;
   final String name;
+  final String image;
   final String url;
   final String details;
   final String rating;
@@ -195,6 +261,7 @@ class MovieServer {
   MovieServer({
     required this.id,
     required this.name,
+    required this.image,
     required this.url,
     required this.details,
     required this.rating,
@@ -205,6 +272,7 @@ class MovieServer {
     return MovieServer(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
+      image: json['image']?.toString() ?? '',
       url: json['url']?.toString() ?? '',
       details: json['details']?.toString() ?? '',
       rating: json['rating']?.toString() ?? '',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ispapp/core/config/constants/color.dart';
-import 'controllers/ping_controller.dart';
+import '../controllers/ping_controller.dart';
 
 class PingScreen extends StatelessWidget {
   const PingScreen({super.key});
