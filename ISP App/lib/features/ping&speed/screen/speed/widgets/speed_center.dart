@@ -24,58 +24,98 @@ class SpeedCenter extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Icon with rotation animation
         if (testInProgress)
           AnimatedBuilder(
             animation: rotationController,
             builder: (context, child) {
-              return Transform.rotate(
-                angle: rotationController.value * 2 * math.pi,
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (currentTestType == TestType.download
+                          ? const Color(0xFF4CAF50)
+                          : const Color(0xFF2196F3))
+                      .withOpacity(0.15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (currentTestType == TestType.download
+                              ? const Color(0xFF4CAF50)
+                              : const Color(0xFF2196F3))
+                          .withOpacity(0.3),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
                 child: Icon(
-                  Icons.speed,
-                  size: 40,
-                  color: AppColors.primary.withOpacity(0.5),
+                  Icons.speed_rounded,
+                  size: 32,
+                  color:
+                      currentTestType == TestType.download
+                          ? const Color(0xFF4CAF50)
+                          : const Color(0xFF2196F3),
                 ),
               );
             },
           )
         else
-          Icon(
-            Icons.speed,
-            size: 40,
-            color: AppColors.primary.withOpacity(0.3),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(12),
+          //   decoration: BoxDecoration(
+          //     shape: BoxShape.circle,
+          //     color: Colors.white.withOpacity(0.05),
+          //     border: Border.all(
+          //       color: Colors.white.withOpacity(0.1),
+          //       width: 1.5,
+          //     ),
+          //   ),
+          //   child: Icon(
+          //     Icons.speed_rounded,
+          //     size: 32,
+          //     color: Colors.white.withOpacity(0.4),
+          //   ),
+          // ),
+          const SizedBox(height: 24),
 
-        const SizedBox(height: 20),
+        // Speed value
+        // Text(
+        //   animatedValue.toStringAsFixed(2),
+        //   style: TextStyle(
+        //     fontSize: 64,
+        //     fontWeight: FontWeight.w800,
+        //     color: Colors.white,
+        //     letterSpacing: -3,
+        //     height: 1.0,
+        //     shadows: [
+        //       Shadow(
+        //         color: (currentTestType == TestType.download
+        //                 ? const Color(0xFF4CAF50)
+        //                 : currentTestType == TestType.upload
+        //                 ? const Color(0xFF2196F3)
+        //                 : AppColors.primary)
+        //             .withOpacity(0.4),
+        //         blurRadius: 20,
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        const SizedBox(height: 4),
 
-        TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOut,
-          tween: Tween<double>(begin: 0, end: animatedSpeed),
-          builder: (context, animatedValue, child) {
-            return Text(
-              animatedValue.toStringAsFixed(2),
-              style: const TextStyle(
-                fontSize: 56,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: -2,
-                height: 1.0,
-              ),
-            );
-          },
-        ),
-
+        // Unit text
         Text(
           unitText,
           style: TextStyle(
-            fontSize: 18,
-            color: Colors.white.withOpacity(0.6),
-            fontWeight: FontWeight.w500,
+            fontSize: 16,
+            color: Colors.white.withOpacity(0.5),
+            fontWeight: FontWeight.w600,
+            letterSpacing: 2,
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
+        // Status text
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),
           transitionBuilder: (child, animation) {
@@ -97,20 +137,32 @@ class SpeedCenter extends StatelessWidget {
           },
           child:
               testInProgress
-                  ? Text(
-                    currentTestType == TestType.download
-                        ? 'Testing Download...'
-                        : currentTestType == TestType.upload
-                        ? 'Testing Upload...'
-                        : 'Preparing...',
+                  ? Container(
                     key: ValueKey(currentTestType),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.background,
-                      fontWeight: FontWeight.w600,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withOpacity(0.15)),
+                    ),
+                    child: Text(
+                      currentTestType == TestType.download
+                          ? 'Measuring Download'
+                          : currentTestType == TestType.upload
+                          ? 'Measuring Upload'
+                          : 'Initializing',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.8),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   )
-                  : const SizedBox(height: 20),
+                  : const SizedBox(height: 28),
         ),
       ],
     );

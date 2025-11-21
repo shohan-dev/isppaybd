@@ -19,29 +19,44 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
           Text(
             label,
             style: TextStyle(
               fontSize: 11,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withOpacity(0.6),
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOutCubic,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOutCubic,
             tween: Tween<double>(begin: 0, end: double.tryParse(value) ?? 0),
             builder: (context, animatedValue, child) {
               return Column(
@@ -49,20 +64,24 @@ class MetricCard extends StatelessWidget {
                 children: [
                   Text(
                     animatedValue.toStringAsFixed(unit == 'ms' ? 0 : 2),
-                    style: const TextStyle(
-                      fontSize: 22,
+                    style: TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       height: 1.0,
+                      shadows: [
+                        Shadow(color: color.withOpacity(0.3), blurRadius: 8),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     unit,
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.white.withOpacity(0.6),
-                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],

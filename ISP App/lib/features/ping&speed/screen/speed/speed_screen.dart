@@ -147,81 +147,188 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1a1a2e),
+      backgroundColor: const Color(0xFF0a0a0f),
       appBar: AppBar(
-        title: const Text('Speed Test'),
+        title: const Text(
+          'Speed Test',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.history, size: 22),
+        //     onPressed: () {},
+        //     tooltip: 'Test History',
+        //   ),
+        // ],
       ),
       body: Container(
         height: double.infinity,
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF1a1a2e),
-              const Color(0xFF16213e),
-              AppColors.primary.withOpacity(0.1),
+              const Color(0xFF0a0a0f),
+              const Color(0xFF12121a),
+              const Color(0xFF1a1a28),
+              AppColors.primary.withOpacity(0.08),
             ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-
-              // Speed Gauge
-              Expanded(
-                child: Center(
-                  child: SpeedGauge(
-                    progress:
-                        _testInProgress
-                            ? (_animatedCurrentSpeed / 100).clamp(0.0, 1.0)
-                            : 0,
-                    color:
-                        _currentTestType == TestType.download
-                            ? Colors.green
-                            : _currentTestType == TestType.upload
-                            ? Colors.blue
-                            : AppColors.primary,
-                    animatedSpeed:
-                        _testInProgress
-                            ? _animatedCurrentSpeed
-                            : (_currentTestType == TestType.download
-                                ? _downloadRate
-                                : _uploadRate),
-                    testInProgress: _testInProgress,
-                    pulseController: _pulseController,
-                    rotationController: _rotationController,
-                    currentTestType: _currentTestType,
+        child: Stack(
+          children: [
+            // Animated background elements
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.primary.withOpacity(0.05),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
-
-              // Speed Metrics
-              MetricsRow(
-                downloadRate: _downloadRate,
-                uploadRate: _uploadRate,
-                ping: _ping,
-                unitText: _unitText,
+            ),
+            Positioned(
+              bottom: -150,
+              left: -100,
+              child: Container(
+                width: 350,
+                height: 350,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Colors.blue.withOpacity(0.04), Colors.transparent],
+                  ),
+                ),
               ),
+            ),
+            // Main content
+            SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
 
-              const SizedBox(height: 40),
+                  // Status indicator
+                  if (_testInProgress)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: (_currentTestType == TestType.download
+                                  ? Colors.green
+                                  : Colors.blue)
+                              .withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _currentTestType == TestType.download
+                                    ? Colors.green
+                                    : Colors.blue,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _currentTestType == TestType.download
+                                ? 'Measuring Download Speed...'
+                                : _currentTestType == TestType.upload
+                                ? 'Measuring Upload Speed...'
+                                : 'Initializing Test...',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-              // Start Button
-              StartTestButton(
-                scaleAnimation: _scaleAnimation,
-                scaleController: _scaleController,
-                testInProgress: _testInProgress,
-                onStart: _startSpeedTest,
+                  const SizedBox(height: 30),
+
+                  // Speed Gauge
+                  Expanded(
+                    child: Center(
+                      child: SpeedGauge(
+                        progress:
+                            _testInProgress
+                                ? (_animatedCurrentSpeed / 100).clamp(0.0, 1.0)
+                                : 0,
+                        color:
+                            _currentTestType == TestType.download
+                                ? const Color(0xFF4CAF50)
+                                : _currentTestType == TestType.upload
+                                ? const Color(0xFF2196F3)
+                                : AppColors.primary,
+                        animatedSpeed:
+                            _testInProgress
+                                ? _animatedCurrentSpeed
+                                : (_currentTestType == TestType.download
+                                    ? _downloadRate
+                                    : _uploadRate),
+                        testInProgress: _testInProgress,
+                        pulseController: _pulseController,
+                        rotationController: _rotationController,
+                        currentTestType: _currentTestType,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Speed Metrics
+                  MetricsRow(
+                    downloadRate: _downloadRate,
+                    uploadRate: _uploadRate,
+                    ping: _ping,
+                    unitText: _unitText,
+                  ),
+
+                  const SizedBox(height: 35),
+
+                  // Start Button
+                  StartTestButton(
+                    scaleAnimation: _scaleAnimation,
+                    scaleController: _scaleController,
+                    testInProgress: _testInProgress,
+                    onStart: _startSpeedTest,
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
               ),
-
-              const SizedBox(height: 60),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
