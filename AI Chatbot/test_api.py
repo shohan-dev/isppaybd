@@ -50,8 +50,8 @@ def test_chat_connection_status():
     payload = {
         "message": "My internet is not working. Phone: +8801823456789",
         "history": [
-            "User: Hello",
-            "Agent: Hi! How can I help you today?"
+            {"role": "user", "content": "Hello"},
+            {"role": "agent", "content": "Hi! How can I help you today?"}
         ]
     }
     response = requests.post(f"{BASE_URL}/chat", json=payload)
@@ -66,8 +66,8 @@ def test_chat_ticket_creation():
     payload = {
         "message": "I need a technician visit. My router is not working at all.",
         "history": [
-            "User: My internet is down",
-            "Agent: I've checked your connection and found issues."
+            {"role": "user", "content": "My internet is down"},
+            {"role": "agent", "content": "I've checked your connection and found issues."}
         ]
     }
     response = requests.post(f"{BASE_URL}/chat", json=payload)
@@ -80,14 +80,14 @@ def test_chat_with_compression():
     """Test chat with long history (compression)"""
     print("🔍 Testing context compression...")
     long_history = [
-        "User: Hello",
-        "Agent: Hi! How can I help?",
-        "User: I'm having internet issues",
-        "Agent: Let me check that for you",
-        "User: Thank you",
-        "Agent: Your connection seems fine now",
-        "User: Wait, it's slow again",
-        "Agent: Let me investigate further"
+        {"role": "user", "content": "Hello"},
+        {"role": "agent", "content": "Hi! How can I help?"},
+        {"role": "user", "content": "I'm having internet issues"},
+        {"role": "agent", "content": "Let me check that for you"},
+        {"role": "user", "content": "Thank you"},
+        {"role": "agent", "content": "Your connection seems fine now"},
+        {"role": "user", "content": "Wait, it's slow again"},
+        {"role": "agent", "content": "Let me investigate further"}
     ]
     payload = {
         "message": "Can you create a ticket for this?",

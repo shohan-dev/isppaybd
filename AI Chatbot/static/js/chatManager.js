@@ -84,7 +84,7 @@ class ChatManager {
      */
     deleteChat(chatId) {
         this.allChats = this.allChats.filter(c => c.id !== chatId);
-        
+
         if (this.currentChatId === chatId) {
             this.currentChatId = null;
             this.chatHistory = [];
@@ -102,8 +102,13 @@ class ChatManager {
         if (typeof cleanMsg === 'string') {
             cleanMsg = cleanMsg.replace(/^"+|"+$/g, '');
         }
-        this.chatHistory.push(`${sender}: ${cleanMsg}`);
-        
+
+        // Store as object
+        this.chatHistory.push({
+            role: sender.toLowerCase() === 'user' ? 'user' : 'agent',
+            content: cleanMsg
+        });
+
         // Auto-save after each message
         if (this.chatHistory.length % 2 === 0) { // After every bot response
             this.saveCurrentChat();
@@ -129,17 +134,20 @@ class ChatManager {
      */
     _generateTitle() {
         if (this.chatHistory.length === 0) return 'New Chat';
-        
+
         const firstMessage = this.chatHistory[0];
-        const message = firstMessage.replace(/^User:\s*/, '');
-        
+        // Handle both object and legacy string format
+        const message = typeof firstMessage === 'string'
+            ? firstMessage.replace(/^User:\s*/, '')
+            : firstMessage.content;
+
         // Clean up the title
         let title = message.substring(0, 40);
-        
+
         // Remove extra formatting
         title = title.replace(/\*\*/g, '');
         title = title.replace(/\n/g, ' ');
-        
+
         return title + (message.length > 40 ? '...' : '');
     }
 
@@ -148,17 +156,18 @@ class ChatManager {
      */
     _generatePreview() {
         if (this.chatHistory.length === 0) return '';
-        
+
         const lastMessage = this.chatHistory[this.chatHistory.length - 1];
-        const message = lastMessage.replace(/^(User|Agent):\s*/, '');
-        
-        // Clean up the preview
-        let preview = message.substring(0, 50);
+        // Handle both object and legacy string format
+        const message = typeof lastMessage === 'string'
+            ? lastMessage.split(': ')[1] || lastMessage
+            : lastMessage.content;
+
+        let preview = message.substring(0, 60);
         preview = preview.replace(/\*\*/g, '');
         preview = preview.replace(/\n/g, ' ');
-        preview = preview.replace(/[✓✗⚠️]/g, '');
-        
-        return preview + (message.length > 50 ? '...' : '');
+
+        return preview + (message.length > 60 ? '...' : '');
     }
 
     /**

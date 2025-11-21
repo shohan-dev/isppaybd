@@ -34,6 +34,10 @@ BENGALI_ISP_PATTERN = re.compile(
 
 def is_isp_related_query(message: str) -> bool:
     text = message.lower()
+    
+    # Allow greetings
+    if text.strip() in ["hi", "hello", "hey", "salam", "assalamu alaikum", "start"]:
+        return True
 
     # English detection
     if ISP_PATTERN.search(text):
@@ -45,7 +49,7 @@ def is_isp_related_query(message: str) -> bool:
 
     # Short tech questions
     if len(text.split()) <= 4 and any(
-        w in text for w in ["why", "how", "what", "help", "support"]
+        w in text for w in ["why", "how", "what", "help", "support", "check", "status"]
     ):
         return True
 
@@ -92,12 +96,12 @@ class SupportAgent:
 
     def _build_messages(
         self,
-        history: Optional[List[str]],
+        history: Optional[List[Dict[str, str]]],
         message: str,
         account_id: Optional[str],
         summary: Optional[str],
     ) -> List[SystemMessage | HumanMessage | AIMessage | ToolMessage]:
-        """Convert raw history strings into LangChain messages."""
+        """Convert structured history into LangChain messages."""
         stack: List[Any] = [SystemMessage(content=SYSTEM_PROMPT)]
 
         if summary:
@@ -108,16 +112,15 @@ class SupportAgent:
             )
 
         for entry in history or []:
-            trimmed = (entry or "").strip()
-            if not trimmed:
-                continue
-            lower = trimmed.lower()
-            if lower.startswith("agent:"):
-                stack.append(AIMessage(content=trimmed.split(":", 1)[1].strip()))
-            elif lower.startswith("user:"):
-                stack.append(HumanMessage(content=trimmed.split(":", 1)[1].strip()))
+            role = entry.get("role", "").lower()
+            content = entry.get("content", "")
+            
+            if role in ["agent", "assistant", "ai"]:
+                stack.append(AIMessage(content=content))
+            elif role == "user":
+                stack.append(HumanMessage(content=content))
             else:
-                stack.append(HumanMessage(content=trimmed))
+                stack.append(HumanMessage(content=content))
 
         user_message = message
         if account_id:

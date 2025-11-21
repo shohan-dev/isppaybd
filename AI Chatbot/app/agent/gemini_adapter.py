@@ -33,7 +33,7 @@ class GeminiChatAdapter:
     def __init__(self, model: str = "gemini-2.5-flash", temperature: float = 0.0, api_key: Optional[str] = None, max_tokens: int = 1000):
         self.model = model
         self.temperature = temperature
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GEMINIUS_API_KEY", "")
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.max_tokens = max_tokens
         self._tools = []
 

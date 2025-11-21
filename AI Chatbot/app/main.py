@@ -84,7 +84,7 @@ def sanitize_agent_response(text: str) -> str:
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
     message: str = Field(..., min_length=1, description="User's message")
-    history: List[str] = Field(default=[], description="Previous conversation messages")
+    history: List[dict[str, str]] = Field(default=[], description="Previous conversation messages")
     phone_number: Optional[str] = Field(None, description="User's phone number to lookup account_id")
 
     class Config:
@@ -92,8 +92,8 @@ class ChatRequest(BaseModel):
             "example": {
                 "message": "My internet is not working",
                 "history": [
-                    "User: Hello",
-                    "Agent: Hi! How can I help you today?"
+                    {"role": "user", "content": "Hello"},
+                    {"role": "assistant", "content": "Hi! How can I help you today?"}
                 ],
                 "phone_number": "01712345678"
             }

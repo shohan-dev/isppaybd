@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Central configuration with environment variable support."""
 
     # Gemini / Google Generative AI credentials
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY") or os.getenv("GEMINIUS_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
     GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
     
     # Model Configuration
@@ -78,7 +78,7 @@ def validate_settings() -> bool:
     # Require Gemini API key or Google ADC credentials
     if not (settings.GEMINI_API_KEY or settings.GOOGLE_APPLICATION_CREDENTIALS):
         raise ValueError(
-            "No model API credentials configured. Set GEMINI_API_KEY (or GEMINIUS_API_KEY) or configure GOOGLE_APPLICATION_CREDENTIALS."
+            "No model API credentials configured. Set GEMINI_API_KEY or configure GOOGLE_APPLICATION_CREDENTIALS."
         )
     
     if settings.TEMPERATURE < 0 or settings.TEMPERATURE > 1:
