@@ -6,6 +6,7 @@ class NewsModel {
   final String imageUrl;
   final String category;
   final DateTime publishedAt;
+  final String url;
   final DateTime? updatedAt;
   final bool isActive;
   final String author;
@@ -18,6 +19,7 @@ class NewsModel {
     this.imageUrl = '',
     required this.category,
     required this.publishedAt,
+    this.url = '',
     this.updatedAt,
     this.isActive = true,
     required this.author,
@@ -34,9 +36,11 @@ class NewsModel {
       publishedAt: DateTime.parse(
         json['published_at'] ?? DateTime.now().toIso8601String(),
       ),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : null,
+      url: json['url'] ?? '',
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : null,
       isActive: json['is_active'] ?? true,
       author: json['author'] ?? '',
     );
@@ -51,6 +55,7 @@ class NewsModel {
       'image_url': imageUrl,
       'category': category,
       'published_at': publishedAt.toIso8601String(),
+      'url': url,
       'updated_at': updatedAt?.toIso8601String(),
       'is_active': isActive,
       'author': author,
@@ -86,9 +91,10 @@ class AnnouncementModel {
       createdAt: DateTime.parse(
         json['created_at'] ?? DateTime.now().toIso8601String(),
       ),
-      expiresAt: json['expires_at'] != null
-          ? DateTime.parse(json['expires_at'])
-          : null,
+      expiresAt:
+          json['expires_at'] != null
+              ? DateTime.parse(json['expires_at'])
+              : null,
       isActive: json['is_active'] ?? true,
     );
   }

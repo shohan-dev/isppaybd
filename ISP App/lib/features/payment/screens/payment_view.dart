@@ -7,11 +7,25 @@ import 'payment_webview_screen.dart';
 import '../controllers/payment_controller.dart';
 
 class PaymentView extends StatelessWidget {
+  static const Map<String, String> _iconImages = {
+    'cash': 'https://cdn-icons-png.flaticon.com/512/2165/2165704.png',
+    'rocket':
+        'https://play-lh.googleusercontent.com/sDY6YSDobbm_rX-aozinIX5tVYBSea1nAyXYI4TJlije2_AF5_5aG3iAS7nlrgo0lk8=w240-h480-rw',
+    'bkash':
+        'https://play-lh.googleusercontent.com/1CRcUfmtwvWxT2g-xJF8s9_btha42TLi6Lo-qVkVomXBb_citzakZX9BbeY51iholWs',
+    'nagad':
+        'https://play-lh.googleusercontent.com/9ps_d6nGKQzfbsJfMaFR0RkdwzEdbZV53ReYCS09Eo5MV-GtVylFD-7IHcVktlnz9Mo=w240-h480-rw',
+    'upay': 'https://channelreport.upaybd.com/static/media/logo.png',
+    'sslcommerz': 'https://sslcommerz.com/wp-content/uploads/2021/11/logo.png',
+  };
+
   const PaymentView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final PaymentController controller = Get.put(PaymentController());
+
+    // Icon mapping moved to class-level `_iconImages`.
 
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
@@ -329,6 +343,8 @@ class PaymentView extends StatelessWidget {
 
   Widget _buildPaymentCard(payment) {
     // Build the tappable payment card. Tapping a pending payment opens the payment web page.
+    final paidViaKey = (payment.paidVia ?? '').toString().toLowerCase();
+    final iconUrl = PaymentView._iconImages[paidViaKey] ?? '';
     final token = AppStorageHelper.get("token");
     return GestureDetector(
       onTap: () {
@@ -406,12 +422,36 @@ class PaymentView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '${payment.month} • ${payment.paidVia}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            '${payment.month} • ${payment.paidVia}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          iconUrl.isNotEmpty
+                              ? Image.network(
+                                iconUrl,
+                                width: 14,
+                                height: 14,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const SizedBox(width: 24, height: 24);
+                                },
+                              )
+                              : SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: Icon(
+                                  Icons.payment,
+                                  size: 20,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                        ],
                       ),
                     ],
                   ),

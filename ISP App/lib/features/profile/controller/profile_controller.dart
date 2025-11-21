@@ -102,28 +102,26 @@ class ProfileController extends GetxController {
 
       print('📊 Profile Update Response: ${response.data}');
 
-      if (response.success) {
-        AppToastHelper.showToast(
-          message: response.message,
-          title: 'Success',
-          type: ToastType.success,
-        );
+      AppToastHelper.showToast(
+        message: "Profile updated successfully",
+        title: 'Success',
+        type: ToastType.success,
+      );
 
-        // Refresh dashboard data to get updated user info
-        await _homeController.loadDashboardData();
+      print('✅ Profile updated successfully 1');
 
-        // Reload user data from home controller
-        loadUserData();
+      // Refresh dashboard data to get updated user info
+      await _homeController.loadDashboardData();
 
-        // Exit edit mode
-        isEditMode.value = false;
-      } else {
-        AppToastHelper.showToast(
-          message: response.message,
-          title: 'Error',
-          type: ToastType.error,
-        );
-      }
+      print('✅ Profile updated successfully 2');
+
+      // Reload user data from home controller
+      loadUserData();
+
+      print('✅ Profile updated successfully 3');
+
+      // Exit edit mode
+      isEditMode.value = false;
     } catch (e) {
       print('❌ Error updating profile: $e');
       AppToastHelper.showToast(

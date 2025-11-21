@@ -4,6 +4,7 @@ import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/screens/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/screens/widgets/realTimeChartPainter.dart';
+import 'package:ispapp/features/news/screens/news_view.dart';
 import 'package:ispapp/features/others/movie_server_screen.dart';
 import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../controllers/home_controller.dart';
@@ -34,7 +35,7 @@ class HomeView extends StatelessWidget {
                   _buildMenuGrid(homeController),
                   const SizedBox(height: 24),
                   _buildAccountOverview(homeController),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   _buildUsageStats(homeController),
                   const SizedBox(height: 40),
                 ],
@@ -175,10 +176,9 @@ class HomeView extends StatelessWidget {
                     size: 28,
                   ),
                   onPressed:
-                      () => Get.snackbar(
-                        'Info',
-                        'Notifications feature coming soon!',
-                      ),
+                      () => Get.to(
+                        NewsView(),
+                      ), // Navigate to notifications screen
                 ),
                 IconButton(
                   icon: const Icon(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:ispapp/core/config/constants/api.dart';
+import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MovieServerScreen extends StatefulWidget {
@@ -28,7 +29,8 @@ class _MovieServerScreenState extends State<MovieServerScreen> {
       _error = null;
     });
 
-    final url = '${AppApi.baseUrl}movieservers';
+    final url =
+        '${AppApi.baseUrl}movieservers?user_id=${AppStorageHelper.get('user_id')}';
 
     try {
       final resp = await _dio.get(url);

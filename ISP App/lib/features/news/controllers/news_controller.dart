@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../models/news_model.dart';
 
@@ -6,80 +8,104 @@ class NewsController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
 
+  // Configure your base URL / image base here. Adjust if your backend uses another path.
+  final String baseUrl = 'https://isppaybd.com/api';
+  final String imageBase = 'https://isppaybd.com/assets/news/';
+
+  final Dio _dio = Dio();
+
   @override
   void onInit() {
     super.onInit();
     loadNews();
   }
 
-  Future<void> loadNews() async {
+  /// Load news from API. Provide `userId` if you want a different user.
+  Future<void> loadNews({String userId = '10854'}) async {
     isLoading.value = true;
 
     try {
-      // Simulate API call with dummy data
-      await Future.delayed(const Duration(seconds: 1));
+      final url = '$baseUrl/news?user_id=$userId';
+      print('Loading news from $url');
+      final resp = await _dio.get(url);
 
-      newsList.value = [
-        NewsModel(
-          id: 'news_1',
-          title: 'damaka',
-          content:
-              'Network upgrade coming soon with improved speed and reliability. We are working hard to enhance your internet experience.',
-          excerpt: 'coming.....soon',
-          imageUrl:
-              'https://via.placeholder.com/400x200/4A90E2/FFFFFF?text=ISP+News',
-          category: 'Network Updates',
-          publishedAt: DateTime.parse('2025-09-24T14:37:46.527'),
-          author: 'ISP Team',
-        ),
-        NewsModel(
-          id: 'news_2',
-          title: 'Speed Upgrade Available',
-          content:
-              'We have upgraded our network infrastructure to provide faster speeds to all our customers.',
-          excerpt: 'Enjoy faster internet speeds',
-          imageUrl:
-              'https://via.placeholder.com/400x200/357ABD/FFFFFF?text=Speed+Upgrade',
-          category: 'Service Updates',
-          publishedAt: DateTime.now().subtract(const Duration(days: 2)),
-          author: 'Technical Team',
-        ),
-        NewsModel(
-          id: 'news_3',
-          title: 'New Payment Options',
-          content:
-              'We now support multiple payment methods including mobile banking and digital wallets.',
-          excerpt: 'More payment flexibility',
-          imageUrl:
-              'https://via.placeholder.com/400x200/81C784/FFFFFF?text=Payment+Update',
-          category: 'Payment',
-          publishedAt: DateTime.now().subtract(const Duration(days: 5)),
-          author: 'Billing Team',
-        ),
-        NewsModel(
-          id: 'news_4',
-          title: 'Maintenance Schedule',
-          content:
-              'Scheduled maintenance will be performed on our servers to improve service quality.',
-          excerpt: 'Upcoming maintenance notice',
-          imageUrl:
-              'https://via.placeholder.com/400x200/FFB74D/FFFFFF?text=Maintenance',
-          category: 'Maintenance',
-          publishedAt: DateTime.now().subtract(const Duration(days: 7)),
-          author: 'Operations Team',
-        ),
-      ];
+      if (resp.statusCode == 200 && resp.data != null) {
+        final data = resp.data;
+        print(data);
+
+        if (data is Map &&
+            data['status'] == 'success' &&
+            data['data'] is List) {
+          final List items = data['data'];
+          final List<NewsModel> parsed =
+              items.map((item) {
+                final Map<String, dynamic> j = Map<String, dynamic>.from(
+                  item as Map,
+                );
+
+                final rawImage = (j['image'] ?? '').toString();
+                final imageUrl =
+                    rawImage.isEmpty
+                        ? ''
+                        : (rawImage.startsWith('http')
+                            ? rawImage
+                            : '$imageBase$rawImage');
+
+                print('Parsed image URL: $imageUrl');
+
+                final created = (j['created_at'] ?? '').toString();
+                DateTime publishedAt;
+                try {
+                  // Some backends return `YYYY-MM-DD HH:MM:SS` — try to normalize
+                  publishedAt = DateTime.parse(created.replaceFirst(' ', 'T'));
+                } catch (_) {
+                  publishedAt = DateTime.now();
+                }
+
+                final details = j['details']?.toString() ?? '';
+                final excerpt =
+                    details.length > 120
+                        ? '${details.substring(0, 120)}...'
+                        : details;
+
+                return NewsModel(
+                  id: j['id']?.toString() ?? '',
+                  title: j['name']?.toString() ?? '',
+                  content: details,
+                  excerpt: excerpt,
+                  imageUrl: imageUrl,
+                  url: j['url']?.toString() ?? '',
+                  category: j['category']?.toString() ?? 'General',
+                  publishedAt: publishedAt,
+                  author: j['admin_id']?.toString() ?? '',
+                );
+              }).toList();
+
+          newsList.value = parsed;
+        } else {
+          // Unexpected response shape
+          newsList.clear();
+        }
+      } else {
+        newsList.clear();
+      }
     } catch (e) {
+      if (kDebugMode) print('News load error: $e');
       Get.snackbar('Error', 'Failed to load news');
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> refreshNews() async {
+  Future<void> refreshNews({String userId = '10854'}) async {
     isRefreshing.value = true;
-    await loadNews();
+    await loadNews(userId: userId);
     isRefreshing.value = false;
-    Get.snackbar('Success', 'News refreshed successfully');
+  }
+
+  @override
+  void onClose() {
+    _dio.close();
+    super.onClose();
   }
 }
