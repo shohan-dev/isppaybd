@@ -149,6 +149,9 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         const typingIndicator = document.getElementById('typingIndicator');
+        
+        // Generate a random session ID for this session
+        const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
@@ -168,12 +171,12 @@
             typingIndicator.style.display = 'block';
 
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: message }),
+                    body: JSON.stringify({ message: message, session_id: sessionId }),
                 });
 
                 if (!response.ok) {
