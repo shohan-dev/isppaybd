@@ -40,5 +40,41 @@
       "role": "assistant",
       "content": "I understand. If you're experiencing slow internet speeds, here are a few common troubleshooting steps you can try:\n\n1.  **Restart your router:** Unplug your internet router from the power outlet, wait for about 30 seconds, and then plug it back in. Wait a few minutes for it to fully restart.\n2.  **Check your connections:** Make sure all cables connected to your router and modem are secure and not damaged.\n3.  **Test on different devices:** See if the slow speed issue occurs on all your devices (computer, phone, tablet) or just one.\n4.  **Move closer to the router:** If you're using Wi-Fi, try moving closer to your router to see if the signal improves.\n\nIf these steps don't help, please let me know."
     }
+  ],
+  "session_eqmisaxxy": [
+    {
+      "role": "user",
+      "content": "my internet"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello! I'm FastNet AI. I can help you with your internet.\n\nTo assist you better, could you please provide me with your **name** or **customer ID**? This will allow me to access your account details."
+    },
+    {
+      "role": "user",
+      "content": "103"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello **Charlie Brown**! \ud83d\udc4b\n\nI see you are on the **Fiber Basic 300Mbps** plan.\n\nYour current bill is **$60.00**. Your last payment was on **2023-09-01**, and your account status is **Overdue**.\n\nWould you like help making a payment?"
+    }
+  ],
+  "session_fivlfwu4w": [
+    {
+      "role": "user",
+      "content": "my id is 101 and my intenet issue fix"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello **Alice Johnson**! \ud83d\udc4b\n\nI'm glad to hear that your internet issue is fixed! Is there anything else I can help you with today?"
+    },
+    {
+      "role": "user",
+      "content": "net to cholse na ki korbo"
+    },
+    {
+      "role": "assistant",
+      "content": "\u09a6\u09c1\u0983\u0996\u09bf\u09a4 \u09af\u09c7 \u0986\u09aa\u09a8\u09be\u09b0 \u0987\u09a8\u09cd\u099f\u09be\u09b0\u09a8\u09c7\u099f \u0995\u09be\u099c \u0995\u09b0\u099b\u09c7 \u09a8\u09be\u0964 \ud83d\ude14\n\n\u0986\u09b8\u09c1\u09a8 \u0986\u09ae\u09b0\u09be \u098f\u099f\u09bf \u09a0\u09bf\u0995 \u0995\u09b0\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09bf:\n\n1.  \u09a6\u09af\u09bc\u09be \u0995\u09b0\u09c7 \u0986\u09aa\u09a8\u09be\u09b0 **\u09b0\u09be\u0989\u099f\u09be\u09b0\u099f\u09bf \u09e7\u09e6 \u09b8\u09c7\u0995\u09c7\u09a8\u09cd\u09a1\u09c7\u09b0 \u099c\u09a8\u09cd\u09af \u09ac\u09a8\u09cd\u09a7 \u0995\u09b0\u09c7 \u0986\u09ac\u09be\u09b0 \u099a\u09be\u09b2\u09c1 \u0995\u09b0\u09c1\u09a8**\u0964\n2.  \u0986\u09aa\u09a8\u09be\u09b0 \u09a1\u09bf\u09ad\u09be\u0987\u09b8\u09c7\u09b0 \u09b8\u09be\u09a5\u09c7 \u09b0\u09be\u0989\u099f\u09be\u09b0\u09c7\u09b0 \u09a6\u09c2\u09b0\u09a4\u09cd\u09ac \u0995\u09ae\u09be\u09a8\u09cb\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8 \u098f\u09ac\u0982 \u09a8\u09bf\u09b6\u09cd\u099a\u09bf\u09a4 \u0995\u09b0\u09c1\u09a8 \u09af\u09c7 \u0995\u09cb\u09a8\u0993 \u09ac\u09be\u09a7\u09be \u09a8\u09c7\u0987\u0964\n3.  \u0986\u09aa\u09a8\u09be\u09b0 \u09a1\u09bf\u09ad\u09be\u0987\u09b8\u09c7\u09b0 Wi-Fi \u09ac\u09a8\u09cd\u09a7 \u0995\u09b0\u09c7 \u0986\u09ac\u09be\u09b0 \u099a\u09be\u09b2\u09c1 \u0995\u09b0\u09c1\u09a8\u0964\n\n\u098f\u099f\u09bf \u0995\u09bf \u0995\u09be\u099c \u0995\u09b0\u09c7\u099b\u09c7? \u09af\u09a6\u09bf \u09a8\u09be \u09b9\u09af\u09bc, \u09a4\u09ac\u09c7 \u0986\u09ae\u09be\u0995\u09c7 \u0986\u09aa\u09a8\u09be\u09b0 **\u0995\u09be\u09b8\u09cd\u099f\u09ae\u09be\u09b0 \u0986\u0987\u09a1\u09bf** \u0985\u09a5\u09ac\u09be **\u09a8\u09be\u09ae** \u09a6\u09bf\u09a8, \u09a4\u09be\u09b9\u09b2\u09c7 \u0986\u09ae\u09bf \u0986\u09aa\u09a8\u09be\u09b0 \u0985\u09cd\u09af\u09be\u0995\u09be\u0989\u09a8\u09cd\u099f\u099f\u09bf \u09aa\u09b0\u09c0\u0995\u09cd\u09b7\u09be \u0995\u09b0\u09c7 \u09a6\u09c7\u0996\u09a4\u09c7 \u09aa\u09be\u09b0\u09ac\u0964"
+    }
   ]
 }
