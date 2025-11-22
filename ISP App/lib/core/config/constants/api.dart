@@ -16,12 +16,12 @@ class AppApi {
   static const String payment = '${baseUrl}payment_fetch?user_id=';
   // subscriptions
   static const String subscription =
-      '${baseUrl}Subscription_index?role=user&user_id=';
-  static const String subscriptionRenew = '${baseUrl}Subscription_renew/';
+      '${baseUrl}subscription_index?role=user&user_id=';
+  static const String subscriptionRenew = '${baseUrl}subscription_renew/';
 
   // support tickets
   static const String supportTickets =
-      '${baseUrl}Support_ticket_fetch?user_role=user&user_id=';
+      '${baseUrl}support_ticket_fetch?user_role=user&user_id=';
   static const String supportTicketDetails =
       '${baseUrl}ticket_details?user_role=user&ticket_id=';
   static const String supportTicketSendMessage =

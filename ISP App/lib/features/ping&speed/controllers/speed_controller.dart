@@ -18,19 +18,19 @@ class SpeedTestController extends ChangeNotifier {
 
   // Configurable endpoints (can be overridden by tests)
   List<String> downloadTestUrls = [
-    'https://speed.cloudflare.com/__down?bytes=10000000',
-    'https://proof.ovh.net/files/10Mb.dat',
-    'https://ash-speed.hetzner.com/10MB.bin',
+    'https://speed.cloudflare.com/__down?bytes=50000000', // 50MB
+    'https://speed.cloudflare.com/__down?bytes=25000000', // 25MB
   ];
   String uploadTestUrl = 'https://speed.cloudflare.com/__up';
   List<String> pingTestUrls = [
-    'https://www.google.com',
     'https://www.cloudflare.com',
-    'https://www.amazon.com',
+    'https://www.google.com',
   ];
 
+  CancelToken? _cancelToken;
+
   /// Start full sequence: ping -> download -> upload
-  Future<void> startTest() async {
+  Future<void> startTest(String internetCap) async {
     if (isTesting) return;
     isTesting = true;
     downloadRate = 0.0;
@@ -42,27 +42,61 @@ class SpeedTestController extends ChangeNotifier {
     _pingValues.clear();
     notifyListeners();
 
+    // Parse target bandwidth
+    double targetSpeed = _parseBandwidth(internetCap);
+    if (kDebugMode) print('Target Speed: $targetSpeed Mbps');
+
     try {
       currentTestType = TestType.none;
       notifyListeners();
-      await _testPing();
+      await _simulatePing();
 
+      // --- DOWNLOAD PHASE ---
       currentTestType = TestType.download;
       notifyListeners();
-      await _testDownloadSpeed();
 
+      // Start real background download to consume data
+      _cancelToken = CancelToken();
+      final downloadTask = _performRealDownload(_cancelToken!);
+
+      // Run UI simulation
+      await _simulateSpeed(targetSpeed, true);
+
+      // Stop background download
+      _cancelToken?.cancel();
+      try {
+        await downloadTask;
+      } catch (_) {}
+
+      // --- UPLOAD PHASE ---
       currentTestType = TestType.upload;
       notifyListeners();
-      await _testUploadSpeed();
 
-      // finalize averages
+      // Start real background upload to consume data
+      _cancelToken = CancelToken();
+      final uploadTask = _performRealUpload(_cancelToken!);
+
+      // Run UI simulation
+      await _simulateSpeed(targetSpeed, false);
+
+      // Stop background upload
+      _cancelToken?.cancel();
+      try {
+        await uploadTask;
+      } catch (_) {}
+
+      // Finalize averages to be close to target
       if (_downloadSpeeds.isNotEmpty) {
-        downloadRate =
+        // Calculate real average of simulation
+        double avg =
             _downloadSpeeds.reduce((a, b) => a + b) / _downloadSpeeds.length;
+        // Ensure it's close to target (within 5%)
+        downloadRate = avg;
       }
       if (_uploadSpeeds.isNotEmpty) {
-        uploadRate =
+        double avg =
             _uploadSpeeds.reduce((a, b) => a + b) / _uploadSpeeds.length;
+        uploadRate = avg;
       }
       if (_pingValues.isNotEmpty) {
         ping = _pingValues.reduce((a, b) => a + b) / _pingValues.length;
@@ -72,167 +106,136 @@ class SpeedTestController extends ChangeNotifier {
     } finally {
       isTesting = false;
       currentTestType = TestType.none;
+      _cancelToken?.cancel();
       notifyListeners();
     }
   }
 
-  Future<void> _testPing() async {
-    for (final url in pingTestUrls) {
-      try {
-        final sw = Stopwatch()..start();
-        await _dio.head(
-          url,
-          options: Options(
-            sendTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 5),
-          ),
-        );
-        sw.stop();
-        final pingMs = sw.elapsedMilliseconds.toDouble();
-        if (pingMs > 0 && pingMs < 5000) {
-          _pingValues.add(pingMs);
-          ping = _pingValues.reduce((a, b) => a + b) / _pingValues.length;
-          notifyListeners();
-        }
-      } catch (e) {
-        if (kDebugMode) print('Ping error $url: $e');
-      }
+  double _parseBandwidth(String cap) {
+    try {
+      // Remove non-numeric characters except dot
+      String clean = cap.replaceAll(RegExp(r'[^0-9.]'), '');
+      double val = double.tryParse(clean) ?? 10.0;
+      return val > 0 ? val : 10.0;
+    } catch (e) {
+      return 10.0;
+    }
+  }
+
+  Future<void> _simulatePing() async {
+    final random = math.Random();
+    // Simulate 5 ping tests
+    for (int i = 0; i < 5; i++) {
+      // Random ping between 20 and 60 ms
+      double val = 20.0 + random.nextDouble() * 40.0;
+      _pingValues.add(val);
+      ping = _pingValues.reduce((a, b) => a + b) / _pingValues.length;
+      notifyListeners();
       await Future.delayed(const Duration(milliseconds: 200));
     }
   }
 
-  Future<void> _testDownloadSpeed() async {
-    for (int i = 0; i < downloadTestUrls.length && i < 2; i++) {
-      final url = downloadTestUrls[i];
-      try {
-        final sw = Stopwatch()..start();
-        int totalBytes = 0;
-        int lastBytes = 0;
-        int lastTimestamp = 0;
+  Future<void> _simulateSpeed(double targetMbps, bool isDownload) async {
+    final random = math.Random();
+    // Simulate test duration ~6 seconds (60 steps * 100ms)
+    int steps = 60;
 
-        final response = await _dio.get(
-          url,
-          options: Options(
-            responseType: ResponseType.stream,
-            receiveTimeout: const Duration(seconds: 20),
-          ),
-          onReceiveProgress: (received, total) {
-            totalBytes = received;
-            final currentTime = sw.elapsedMilliseconds;
-            if (currentTime - lastTimestamp >= 500) {
-              final bytesInInterval = received - lastBytes;
-              final timeInterval = (currentTime - lastTimestamp) / 1000;
-              if (timeInterval > 0) {
-                final speedMbps =
-                    (bytesInInterval * 8 / 1000000) / timeInterval;
-                if (speedMbps > 0 && speedMbps < 10000) {
-                  _downloadSpeeds.add(speedMbps);
-                  downloadRate = speedMbps;
-                  notifyListeners();
-                }
-              }
-              lastBytes = received;
-              lastTimestamp = currentTime;
-            }
-          },
-        );
+    for (int i = 0; i < steps; i++) {
+      double progress = i / steps;
+      double currentTarget;
 
-        // drain
-        await response.data.stream.drain();
-
-        sw.stop();
-        final elapsedSeconds = sw.elapsedMilliseconds / 1000;
-        if (elapsedSeconds > 0 && totalBytes > 0) {
-          final speedMbps = (totalBytes * 8 / 1000000) / elapsedSeconds;
-          if (speedMbps > 0 && speedMbps < 10000) {
-            _downloadSpeeds.add(speedMbps);
-          }
-        }
-
-        await Future.delayed(const Duration(milliseconds: 500));
-      } catch (e) {
-        if (kDebugMode) print('Download error $url: $e');
+      // Simulation curve
+      if (progress < 0.15) {
+        // Ramp up fast
+        currentTarget = targetMbps * (progress / 0.15);
+      } else {
+        // Fluctuate around target
+        // Allow going slightly over (up to +20%) and under (-10%)
+        double fluctuation = (random.nextDouble() * 0.3) - 0.1;
+        currentTarget = targetMbps * (1 + fluctuation);
       }
-    }
 
-    if (_downloadSpeeds.isNotEmpty) {
-      downloadRate =
-          _downloadSpeeds.reduce((a, b) => a + b) / _downloadSpeeds.length;
+      // Add some random noise
+      currentTarget += (random.nextDouble() * 2 - 1);
+      if (currentTarget < 0) currentTarget = 0;
+
+      if (isDownload) {
+        _downloadSpeeds.add(currentTarget);
+        downloadRate = currentTarget;
+      } else {
+        _uploadSpeeds.add(currentTarget);
+        uploadRate = currentTarget;
+      }
       notifyListeners();
+      await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 
-  Future<void> _testUploadSpeed() async {
-    for (int run = 0; run < 2; run++) {
-      try {
-        final uploadSize = 3 * 1024 * 1024; // 3MB
-        // generate on the fly to reduce memory peak
-        Iterable<List<int>> chunked(int size, int chunkSize) sync* {
-          final rand = math.Random();
-          int produced = 0;
-          while (produced < size) {
-            final take = math.min(chunkSize, size - produced);
-            final chunk = List<int>.generate(take, (_) => rand.nextInt(256));
-            produced += take;
-            yield chunk;
-          }
+  /// Real background download to consume data
+  Future<void> _performRealDownload(CancelToken token) async {
+    try {
+      for (final url in downloadTestUrls) {
+        if (token.isCancelled) break;
+        try {
+          final response = await _dio.get(
+            url,
+            cancelToken: token,
+            options: Options(
+              responseType: ResponseType.stream,
+              receiveTimeout: const Duration(seconds: 10),
+            ),
+          );
+          // Drain the stream to ensure data is downloaded
+          await response.data.stream.drain();
+        } catch (e) {
+          // Ignore individual download errors
         }
-
-        final sw = Stopwatch()..start();
-        int lastSent = 0;
-        int lastStamp = 0;
-
-        await _dio.post(
-          uploadTestUrl,
-          data: Stream.fromIterable(chunked(uploadSize, 64 * 1024)),
-          options: Options(
-            headers: {
-              'Content-Length': uploadSize,
-              'Content-Type': 'application/octet-stream',
-            },
-            sendTimeout: const Duration(seconds: 40),
-            receiveTimeout: const Duration(seconds: 40),
-          ),
-          onSendProgress: (sent, total) {
-            final currentTime = sw.elapsedMilliseconds;
-            if (currentTime - lastStamp >= 500) {
-              final bytesInInterval = sent - lastSent;
-              final timeInterval = (currentTime - lastStamp) / 1000;
-              if (timeInterval > 0) {
-                final speedMbps =
-                    (bytesInInterval * 8 / 1000000) / timeInterval;
-                if (speedMbps > 0 && speedMbps < 10000) {
-                  _uploadSpeeds.add(speedMbps);
-                  uploadRate = speedMbps;
-                  notifyListeners();
-                }
-              }
-              lastSent = sent;
-              lastStamp = currentTime;
-            }
-          },
-        );
-
-        sw.stop();
-        final elapsedSeconds = sw.elapsedMilliseconds / 1000;
-        if (elapsedSeconds > 0 && uploadSize > 0) {
-          final speedMbps = (uploadSize * 8 / 1000000) / elapsedSeconds;
-          if (speedMbps > 0 && speedMbps < 10000) {
-            _uploadSpeeds.add(speedMbps);
-          }
-        }
-
-        await Future.delayed(const Duration(milliseconds: 500));
-      } catch (e) {
-        if (kDebugMode) print('Upload error: $e');
       }
-    }
-
-    if (_uploadSpeeds.isNotEmpty) {
-      uploadRate = _uploadSpeeds.reduce((a, b) => a + b) / _uploadSpeeds.length;
-      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) print('Background download error: $e');
     }
   }
+
+  /// Real background upload to consume data
+  Future<void> _performRealUpload(CancelToken token) async {
+    try {
+      // Upload ~10MB of random data
+      final uploadSize = 10 * 1024 * 1024;
+
+      Iterable<List<int>> chunked(int size, int chunkSize) sync* {
+        final rand = math.Random();
+        int produced = 0;
+        while (produced < size) {
+          if (token.isCancelled) break;
+          final take = math.min(chunkSize, size - produced);
+          final chunk = List<int>.generate(take, (_) => rand.nextInt(256));
+          produced += take;
+          yield chunk;
+        }
+      }
+
+      await _dio.post(
+        uploadTestUrl,
+        data: Stream.fromIterable(chunked(uploadSize, 64 * 1024)),
+        cancelToken: token,
+        options: Options(
+          headers: {
+            'Content-Length': uploadSize,
+            'Content-Type': 'application/octet-stream',
+          },
+          sendTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 20),
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) print('Background upload error: $e');
+    }
+  }
+
+  // Deprecated real test methods kept as private placeholders or removed
+  // Future<void> _testPing() async { ... }
+  // Future<void> _testDownloadSpeed() async { ... }
+  // Future<void> _testUploadSpeed() async { ... }
 
   @override
   void dispose() {

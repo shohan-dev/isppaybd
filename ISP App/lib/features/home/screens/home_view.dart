@@ -4,8 +4,10 @@ import 'package:ispapp/core/config/constants/color.dart';
 import 'package:ispapp/core/routes/app_routes.dart';
 import 'package:ispapp/features/home/screens/widgets/paymentChartPainter.dart';
 import 'package:ispapp/features/home/screens/widgets/realTimeChartPainter.dart';
+import 'package:ispapp/features/news/controllers/news_controller.dart';
 import 'package:ispapp/features/news/screens/news_view.dart';
-import 'package:ispapp/features/others/movie_server_screen.dart';
+import 'package:ispapp/features/others/movie_server/movie_server_controller.dart';
+import 'package:ispapp/features/others/movie_server/movie_server_screen.dart';
 import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
@@ -18,6 +20,10 @@ class HomeView extends StatelessWidget {
     Get.put(PackagesController());
     final HomeController homeController = Get.find<HomeController>();
     final AuthController authController = Get.find<AuthController>();
+    final NewsController newsController = Get.put(NewsController());
+    final MovieServerController movieServerController = Get.put(
+      MovieServerController(),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
@@ -29,14 +35,18 @@ class HomeView extends StatelessWidget {
             child: Obx(
               () => Column(
                 children: [
-                  _buildHeaderSection(homeController, authController),
+                  _buildHeaderSection(
+                    homeController,
+                    authController,
+                    newsController,
+                  ),
                   const SizedBox(height: 24),
                   _buildErrorMessage(homeController),
                   _buildMenuGrid(homeController),
                   const SizedBox(height: 24),
                   _buildAccountOverview(homeController),
                   const SizedBox(height: 12),
-                  _buildUsageStats(homeController),
+                  _buildUsageStats(homeController, movieServerController),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -51,6 +61,7 @@ class HomeView extends StatelessWidget {
   Widget _buildHeaderSection(
     HomeController homeController,
     AuthController authController,
+    NewsController newsController,
   ) {
     return Container(
       decoration: const BoxDecoration(
@@ -169,16 +180,53 @@ class HomeView extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications,
-                    color: AppColors.textWhite,
-                    size: 28,
+                Obx(
+                  () => Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.notifications,
+                          color: AppColors.textWhite,
+                          size: 28,
+                        ),
+                        onPressed: () => Get.to(NewsView()),
+                      ),
+                      newsController.unseenCount.value > 0
+                          ? Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.textWhite,
+                                  width: 1,
+                                ),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                '${newsController.unseenCount.value}',
+                                style: const TextStyle(
+                                  color: AppColors.textWhite,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
+                          : const SizedBox.shrink(),
+                    ],
                   ),
-                  onPressed:
-                      () => Get.to(
-                        NewsView(),
-                      ), // Navigate to notifications screen
                 ),
                 IconButton(
                   icon: const Icon(
@@ -589,7 +637,10 @@ class HomeView extends StatelessWidget {
   }
 
   // Usage statistics section
-  Widget _buildUsageStats(HomeController homeController) {
+  Widget _buildUsageStats(
+    HomeController homeController,
+    MovieServerController movieServerController,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -629,7 +680,7 @@ class HomeView extends StatelessWidget {
                       child: _buildUsageCard(
                         icon: Icons.movie_creation_outlined,
                         title: 'Movie Server',
-                        value: '5',
+                        value: movieServerController.servers.length.toString(),
                         color: AppColors.downloadColor,
                       ),
                     ),

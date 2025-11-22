@@ -15,7 +15,7 @@ class NewsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('News & Events'),
+        title: const Text('Notification & News'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -43,7 +43,7 @@ class NewsView extends StatelessWidget {
             separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final news = controller.newsList[index];
-              return _buildNewsCard(news, context);
+              return Obx(() => _buildNewsCard(news, context, controller));
             },
           ),
         );
@@ -51,9 +51,15 @@ class NewsView extends StatelessWidget {
     );
   }
 
-  Widget _buildNewsCard(NewsModel news, BuildContext context) {
+  Widget _buildNewsCard(
+    NewsModel news,
+    BuildContext context,
+    NewsController controller,
+  ) {
+    final isSeen = controller.isNewsSeen(news.id);
     return InkWell(
       onTap: () async {
+        controller.markAsSeen(news.id);
         try {
           if (news.url.isNotEmpty) {
             await launchUrlString(
@@ -64,160 +70,181 @@ class NewsView extends StatelessWidget {
         } catch (_) {}
       },
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isSeen ? Colors.white : const Color(0xFFF0F7FF),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
-              spreadRadius: 1,
+              color: Colors.grey.withOpacity(0.06),
+              spreadRadius: 0,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A90E2).withOpacity(0.1),
+            // Left image (fixed width)
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 110,
+                    height: 82,
+                    color: const Color(0xFF4A90E2).withOpacity(0.08),
+                    child:
+                        news.imageUrl.isNotEmpty
+                            ? Image.network(
+                              news.imageUrl,
+                              fit: BoxFit.cover,
+                              width: 110,
+                              height: 82,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildPlaceholderImage(news.category);
+                              },
+                            )
+                            : _buildPlaceholderImage(news.category),
+                  ),
                 ),
-                child:
-                    news.imageUrl.isNotEmpty
-                        ? Image.network(
-                          news.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildPlaceholderImage(news.category);
-                          },
-                        )
-                        : _buildPlaceholderImage(news.category),
-              ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Category Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4A90E2).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      news.category,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF4A90E2),
+                if (!isSeen)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'NEW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
+              ],
+            ),
 
-                  const SizedBox(height: 12),
+            const SizedBox(width: 12),
 
-                  // Title
+            // Right content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top row: title and small category badge
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          news.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF212121),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4A90E2).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          news.category,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4A90E2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Excerpt
                   Text(
-                    news.title,
+                    news.excerpt,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF424242),
+                      fontSize: 13,
+                      color: Color(0xFF616161),
+                      height: 1.3,
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  // Excerpt
-                  Text(
-                    news.excerpt,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF757575),
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Footer
+                  // Footer: date and Read button
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Row(
-                      //   children: [
-                      //     const Icon(
-                      //       Icons.person,
-                      //       size: 16,
-                      //       color: Color(0xFF757575),
-                      //     ),
-                      //     const SizedBox(width: 4),
-                      //     Text(
-                      //       news.author,
-                      //       style: const TextStyle(
-                      //         fontSize: 12,
-                      //         color: Color(0xFF757575),
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      Spacer(),
-                      Row(
-                        children: [
-                          Text(
-                            _formatDate(news.publishedAt),
-                            style: const TextStyle(
-                              fontSize: 12,
+                      Text(
+                        _formatDate(news.publishedAt),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFFF9800),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (news.url.isNotEmpty)
+                        TextButton.icon(
+                          onPressed: () async {
+                            try {
+                              await launchUrlString(
+                                news.url,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } catch (_) {}
+                          },
+                          icon: const Icon(
+                            Icons.open_in_new,
+                            size: 16,
+                            color: Color(0xFFFF9800),
+                          ),
+                          label: const Text(
+                            'Read',
+                            style: TextStyle(
+                              fontSize: 13,
                               color: Color(0xFFFF9800),
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          if (news.url.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.open_in_new,
-                                    size: 14,
-                                    color: Color(0xFFFF9800),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Read',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFFFF9800),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
                             ),
-                        ],
-                      ),
+                            minimumSize: const Size(0, 0),
+                            backgroundColor: Colors.orange.withOpacity(0.04),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],

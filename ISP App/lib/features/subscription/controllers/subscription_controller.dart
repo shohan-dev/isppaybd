@@ -4,6 +4,7 @@ import 'package:ispapp/core/config/constants/api.dart';
 import 'package:ispapp/core/helpers/local_storage/storage_helper.dart';
 import 'package:ispapp/core/services/api_service.dart';
 import 'package:ispapp/core/helpers/toast_helper.dart';
+import 'package:ispapp/core/routes/app_routes.dart';
 import '../models/subscription_model.dart';
 
 class SubscriptionController extends GetxController {
@@ -16,10 +17,29 @@ class SubscriptionController extends GetxController {
   // Selected package for upgrade/downgrade
   final Rx<PackageModel?> selectedPackage = Rx<PackageModel?>(null);
 
+  // Scroll controller for screen
+  final ScrollController scrollController = ScrollController();
+
   @override
   void onInit() {
     super.onInit();
     loadSubscription();
+  }
+
+  void scrollToBottom() {
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 
   Future<void> loadSubscription() async {
@@ -234,11 +254,15 @@ class SubscriptionController extends GetxController {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Navigator.of(Get.overlayContext!).pop(false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () {
+              Get.log('✅ User confirmed renewal action');
+              // Close the dialog directly using Navigator to avoid GetX snackbar conflict
+              Navigator.of(Get.overlayContext!).pop(true);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: actionColor,
               foregroundColor: Colors.white,
@@ -283,21 +307,25 @@ class SubscriptionController extends GetxController {
     isRenewing.value = true;
 
     try {
-      final request = SubscriptionRenewRequest(
-        role: 'user',
-        packageId: selectedPkg.id,
-        customer: userId.toString(),
+      // Construct query parameters for GET request
+      final queryParams = {
+        'role': 'user',
+        'package_id': selectedPkg.id,
+        'customer': userId.toString(),
+      };
+
+      print(
+        '🔄 Renewing subscription: ${AppApi.subscriptionRenew} with params: $queryParams',
       );
 
-      final url = '${AppApi.subscriptionRenew}?${request.toQueryString()}';
+      print('🚀 Sending renewal request...  ${AppApi.subscriptionRenew}');
 
-      print('🔄 Renewing subscription: $url');
-
-      final response = await ApiService.instance
-          .post<SubscriptionRenewResponse>(
-            url,
-            mapper: (data) => SubscriptionRenewResponse.fromJson(data),
-          );
+      // Send GET request with query parameters
+      final response = await ApiService.instance.get<SubscriptionRenewResponse>(
+        AppApi.subscriptionRenew,
+        queryParameters: queryParams,
+        mapper: (data) => SubscriptionRenewResponse.fromJson(data),
+      );
 
       print('📊 Renewal Response: ${response.data}');
 
@@ -360,7 +388,7 @@ class SubscriptionController extends GetxController {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Renewal Successful!',
+              'Request Submitted!',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
@@ -369,7 +397,7 @@ class SubscriptionController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Your subscription has been renewed successfully.',
+              'Please pay the subscription fee to activate your package.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14),
             ),
@@ -400,8 +428,15 @@ class SubscriptionController extends GetxController {
           ],
         ),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.of(Get.overlayContext!).pop(),
+            child: const Text('Close'),
+          ),
           ElevatedButton(
-            onPressed: () => Get.back(),
+            onPressed: () {
+              Navigator.of(Get.overlayContext!).pop();
+              Get.toNamed(AppRoutes.payment);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green.shade600,
               foregroundColor: Colors.white,
@@ -410,7 +445,7 @@ class SubscriptionController extends GetxController {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Done'),
+            child: const Text('Pay Now'),
           ),
         ],
       ),

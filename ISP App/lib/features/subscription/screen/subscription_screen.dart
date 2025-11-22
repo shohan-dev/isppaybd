@@ -26,16 +26,6 @@ class SubscriptionScreen extends StatelessWidget {
             ),
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () => Get.offAllNamed('/home'),
-          ),
-        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value &&
@@ -56,6 +46,7 @@ class SubscriptionScreen extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: controller.refreshSubscription,
           child: SingleChildScrollView(
+            controller: controller.scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               children: [
@@ -76,9 +67,13 @@ class SubscriptionScreen extends StatelessWidget {
 
   Widget _buildSubscriptionStatusCard(SubscriptionController controller) {
     final subscription = controller.subscription.value!;
-    final isActive = subscription.isActive;
+
     final daysRemaining = subscription.daysRemaining;
     final percentage = subscription.percentageRemaining;
+    final isActive =
+        daysRemaining == 0
+            ? false
+            : subscription.details.subscriptionStatus.toLowerCase() == 'active';
 
     // Determine gradient colors based on status
     final gradientColors =
@@ -132,18 +127,26 @@ class SubscriptionScreen extends StatelessWidget {
                           : 'Subscription Expired',
                       style: const TextStyle(
                         color: AppColors.textWhite,
-                        fontSize: 16,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Status: ${subscription.details.subscriptionStatus.toUpperCase()}',
-                      style: const TextStyle(
-                        color: AppColors.textWhite70,
-                        fontSize: 13,
+
+                    // const SizedBox(height: 4),
+                    // Text(
+                    //   'Status: ${subscription.details.subscriptionStatus.toUpperCase()}',
+                    //   style: const TextStyle(
+                    //     color: AppColors.textWhite70,
+                    //     fontSize: 13,
+                    //   ),
+                    // ),
+                    if (!isActive)
+                      ElevatedButton(
+                        onPressed: () {
+                          controller.scrollToBottom();
+                        },
+                        child: const Text("Renew Now"),
                       ),
-                    ),
                   ],
                 ),
               ),

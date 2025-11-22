@@ -983,7 +983,7 @@ class SupportView extends StatelessWidget {
                               );
 
                               // Create ticket
-                              final success = await controller.createTicket(
+                              final result = await controller.createTicket(
                                 subject: subjectController.text.trim(),
                                 category: selectedCategory,
                                 priority: selectedPriority,
@@ -993,9 +993,26 @@ class SupportView extends StatelessWidget {
                               // Close loading
                               Get.back();
 
-                              if (success) {
+                              if (result.success) {
                                 subjectController.dispose();
                                 messageController.dispose();
+
+                                Get.snackbar(
+                                  'Success',
+                                  result.message,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 3),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  result.message,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
                               }
                             }
                           },

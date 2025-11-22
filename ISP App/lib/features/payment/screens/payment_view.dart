@@ -402,10 +402,18 @@ class PaymentView extends StatelessWidget {
                     color: payment.statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    payment.paymentIcon,
-                    color: payment.statusColor,
-                    size: 24,
+                  child: Image.network(
+                    iconUrl,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.payment,
+                        size: 24,
+                        color: payment.statusColor,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -432,25 +440,25 @@ class PaymentView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          iconUrl.isNotEmpty
-                              ? Image.network(
-                                iconUrl,
-                                width: 14,
-                                height: 14,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const SizedBox(width: 24, height: 24);
-                                },
-                              )
-                              : SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: Icon(
-                                  Icons.payment,
-                                  size: 20,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                          // iconUrl.isNotEmpty
+                          //     ? Image.network(
+                          //       iconUrl,
+                          //       width: 14,
+                          //       height: 14,
+                          //       fit: BoxFit.contain,
+                          //       errorBuilder: (context, error, stackTrace) {
+                          //         return const SizedBox(width: 24, height: 24);
+                          //       },
+                          //     )
+                          //     : SizedBox(
+                          //       width: 14,
+                          //       height: 14,
+                          //       child: Icon(
+                          //         Icons.payment,
+                          //         size: 20,
+                          //         color: AppColors.textSecondary,
+                          //       ),
+                          //     ),
                         ],
                       ),
                     ],

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:ispapp/core/config/constants/color.dart';
+import 'package:ispapp/features/packages/controllers/packages_controller.dart';
 import 'dart:math' as math;
 import 'widgets/speed_gauge.dart';
 import 'widgets/test_type.dart';
@@ -18,6 +20,9 @@ class SpeedTestScreen extends StatefulWidget {
 class _SpeedTestScreenState extends State<SpeedTestScreen>
     with TickerProviderStateMixin {
   late final SpeedTestController _controller;
+
+  String internetCap =
+      Get.find<PackagesController>().currentUserPackage.value!.bandwidth;
 
   double _downloadRate = 0;
   double _uploadRate = 0;
@@ -41,6 +46,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
   void initState() {
     super.initState();
     _controller = SpeedTestController();
+    print('Internet Cap: $internetCap');
     // Listen to controller updates and copy values into local state for UI
     _controller.addListener(() {
       if (!mounted) return;
@@ -103,7 +109,7 @@ class _SpeedTestScreenState extends State<SpeedTestScreen>
   Future<void> _startSpeedTest() async {
     if (_testInProgress) return;
     // delegate to controller
-    await _controller.startTest();
+    await _controller.startTest(internetCap);
   }
 
   // The test logic has been moved to `SpeedTestController`.

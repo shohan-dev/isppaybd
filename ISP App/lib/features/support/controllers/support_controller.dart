@@ -18,8 +18,10 @@ class SupportController extends GetxController {
     loadTickets();
   }
 
-  Future<void> loadTickets() async {
-    isLoading.value = true;
+  Future<void> loadTickets({bool showLoading = true}) async {
+    if (showLoading) {
+      isLoading.value = true;
+    }
     errorMessage.value = '';
 
     try {
@@ -99,7 +101,9 @@ class SupportController extends GetxController {
       errorMessage.value = 'Error loading tickets: $e';
       developer.log('Exception in loadTickets: $e', name: 'SupportController');
     } finally {
-      isLoading.value = false;
+      if (showLoading) {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -126,7 +130,7 @@ class SupportController extends GetxController {
   int get highPriorityTickets => tickets.where((t) => t.isHighPriority).length;
 
   // Create ticket method - POST request
-  Future<bool> createTicket({
+  Future<({bool success, String message})> createTicket({
     required String subject,
     required String category,
     required String priority,
@@ -136,14 +140,10 @@ class SupportController extends GetxController {
       final userId = AppStorageHelper.get('user_id');
       if (userId == null || userId.toString().isEmpty) {
         developer.log('User ID not found', name: 'SupportController');
-        Get.snackbar(
-          'Error',
-          'User ID not found. Please login again.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        return (
+          success: false,
+          message: 'User ID not found. Please login again.',
         );
-        return false;
       }
 
       // Create request model
@@ -161,9 +161,27 @@ class SupportController extends GetxController {
       );
 
       // Make POST request
-      final response = await AppNetworkHelper.post<Map<String, dynamic>>(
+      // Build query parameters and send them in the URL for the POST request
+      final params = <String, String>{
+        'user_id': request.userId,
+        'subject': request.subject,
+        'category': request.category,
+        'priority': request.priority,
+        'message': request.message,
+      };
+
+      final uri = Uri.parse(
         AppApi.createTicket,
-        data: request.toJson(),
+      ).replace(queryParameters: params);
+      developer.log(
+        'Creating ticket (POST with query params): $uri',
+        name: 'SupportController',
+      );
+
+      // print('Creating ticket at: $uri');
+
+      final response = await AppNetworkHelper.post<Map<String, dynamic>>(
+        uri.toString(),
       );
 
       developer.log(
@@ -180,52 +198,30 @@ class SupportController extends GetxController {
             name: 'SupportController',
           );
 
-          Get.snackbar(
-            'Success',
-            ticketResponse.message.isNotEmpty
-                ? ticketResponse.message
-                : 'Support ticket created successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
+          // Reload tickets to show the new one (without showing global loader)
+          await loadTickets(showLoading: false);
+          return (
+            success: true,
+            message:
+                ticketResponse.message.isNotEmpty
+                    ? ticketResponse.message
+                    : 'Support ticket created successfully',
           );
-
-          // Reload tickets to show the new one
-          await loadTickets();
-          return true;
         } else {
-          Get.snackbar(
-            'Failed',
-            ticketResponse.message.isNotEmpty
-                ? ticketResponse.message
-                : 'Failed to create ticket',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
+          return (
+            success: false,
+            message:
+                ticketResponse.message.isNotEmpty
+                    ? ticketResponse.message
+                    : 'Failed to create ticket',
           );
-          return false;
         }
       } else {
-        Get.snackbar(
-          'Error',
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return false;
+        return (success: false, message: response.message);
       }
     } catch (e) {
       developer.log('Exception in createTicket: $e', name: 'SupportController');
-      Get.snackbar(
-        'Error',
-        'Error creating ticket: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
+      return (success: false, message: 'Error creating ticket: $e');
     }
   }
 
